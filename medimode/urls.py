@@ -19,5 +19,5 @@ from django.urls import path, include
 from medimode import views
 
 urlpatterns = [
-	path('', views.home)
+	path('', views.Home.as_view(), name='medimode_index')
 ]
