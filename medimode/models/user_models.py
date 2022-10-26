@@ -11,17 +11,10 @@ class Profile(models.Model):
 	@property
 	def full_name(self):
 		return self.user.first_name + " " + self.user.last_name
+	
+	class Meta:
+		abstract = True
 		
-@receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
-	if created:
-		Profile.objects.create(user=instance)
-
-@receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
-	instance.profile.save()
-
-
 class Document(models.Model):
 	# MIGHT become a field instead of a model
 	# Delete document when class using the document is deleted

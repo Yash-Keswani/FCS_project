@@ -1,6 +1,8 @@
 from django.http import HttpRequest
 from django.shortcuts import render
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, DetailView
+
+from medimode.models import Insurance
 
 class Home(TemplateView):
 	template_name = "medimode/home.html"
@@ -9,4 +11,7 @@ class Home(TemplateView):
 		context = super().get_context_data(**kwargs)
 		context["test"] = "This value is useless"
 		return context
+
+class InsuranceView(DetailView):
+	model = Insurance
 	

@@ -3,13 +3,13 @@ from functools import lru_cache
 from django.contrib import admin
 from django.contrib.admin import AdminSite
 
-from .models import Profile, Individual, Doctor, Patient, Hospital, Pharmacy, Insurance, Document, Organisation
+from .models import Profile, Individual, Doctor, Patient, Hospital, Pharmacy, Insurance, Document, Organisation, User
 
 # Register your models here.
 model_hierarchy ={
 	"Individual": [Doctor, Patient],
 	"Organistaion": [Hospital, Pharmacy, Insurance],
-	"Documents": [Document]
+	"Documents": [Document],
 }
 class MyAdminSite(AdminSite):
 	@lru_cache
@@ -17,7 +17,9 @@ class MyAdminSite(AdminSite):
 		temp_up = super().get_app_list(request, app_label)
 		temp_down = []
 		for app_reg in temp_up:
-			if app_reg['name'] == 'Medimode':
+			if app_reg['name'] != 'Medimode':
+				temp_down.append(app_reg)
+			else:
 				for app, models in model_hierarchy.items():
 					temp_down.append({'name': app, 'app_label': app, 'app_url': '/admin/medimode', 'has_module_perms': True})
 					models_list = []
@@ -27,8 +29,8 @@ class MyAdminSite(AdminSite):
 								models_list.append(model_dict)
 					temp_down[-1]["models"] = models_list
 		return temp_down
+	
 admin.site = MyAdminSite()
-admin.site.register(Profile)
 
 admin.site.register(Doctor)
 admin.site.register(Patient)
@@ -38,3 +40,4 @@ admin.site.register(Pharmacy)
 admin.site.register(Insurance)
 
 admin.site.register(Document)
+admin.site.register(User)

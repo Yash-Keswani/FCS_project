@@ -19,5 +19,6 @@ from django.urls import path, include
 from medimode import views
 
 urlpatterns = [
-	path('', views.Home.as_view(), name='medimode_index')
+	path('', views.Home.as_view(), name='medimode_index'),
+	path('insurance/<int:pk>', views.InsuranceView.as_view(), name='insurance_details')
 ]
