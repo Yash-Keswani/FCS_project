@@ -11,9 +11,6 @@ class Profile(models.Model):
 	@property
 	def full_name(self):
 		return self.user.first_name + " " + self.user.last_name
-
-	class Meta:
-		abstract = True
 		
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
@@ -60,7 +57,12 @@ class Hospital(Organisation):
 
 class Pharmacy(Organisation):
 	pass
+	
+	class Meta:
+		verbose_name_plural = "Pharmacies"
 
 class Insurance(Organisation):
 	pass
 	
+	class Meta:
+		verbose_name_plural = "Insurance Firms"
