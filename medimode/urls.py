@@ -13,12 +13,18 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
-from django.urls import path, include
+from django.urls import path
 
 from medimode import views
 
 urlpatterns = [
 	path('', views.Home.as_view(), name='medimode_index'),
-	path('insurance/<int:pk>', views.InsuranceView.as_view(), name='insurance_details')
+	
+	path('catalogue/<str:category>', views.Catalogue.as_view(), name='catalogue'),
+	
+	path('pharmacy/<int:pk>', views.PharmacyView.as_view(), name='pharmacy_view'),
+	path('insurance/<int:pk>', views.InsuranceView.as_view(), name='insurance_details'),
+	path('hospital/<int:pk>', views.HospitalView.as_view(), name='hospital_details'),
+	
+	path('doctor/<int:pk>', views.DoctorView.as_view(), name='doctor_details'),
 ]

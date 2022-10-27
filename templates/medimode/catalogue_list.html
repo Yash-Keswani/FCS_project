@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ model }} catalogue</title>
+
+</head>
+<body>
+    {% block content %}
+        <h2>{{ model_plural }}</h2>
+        <ul>
+            {% for user in object_list %}
+                <li>{{ user.full_name }} - {{ user.bio }}</li>
+            {% endfor %}
+        </ul>
+    {% endblock %}
+</body>
+</html>
