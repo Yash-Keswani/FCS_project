@@ -20,6 +20,8 @@ from medimode import views
 urlpatterns = [
 	path('', views.Home.as_view(), name='medimode_index'),
 	
+	path('login', views.Login.as_view(), name='login'),
+	
 	path('catalogue/<str:category>', views.Catalogue.as_view(), name='catalogue'),
 	
 	path('pharmacy/<int:pk>', views.PharmacyView.as_view(), name='pharmacy_view'),
@@ -27,4 +29,6 @@ urlpatterns = [
 	path('hospital/<int:pk>', views.HospitalView.as_view(), name='hospital_details'),
 	
 	path('doctor/<int:pk>', views.DoctorView.as_view(), name='doctor_details'),
+	
+	path('share_document', views.ShareDocument.as_view(), name='share_document')
 ]

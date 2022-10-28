@@ -1,19 +1,53 @@
-from django.contrib.auth.models import User
+import base64
+import secrets
+
+import mintotp as mintotp
+from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
+from django.db.models import TextChoices
+from django_cryptography.fields import encrypt
 
 from .doc_models import Document
+
+role_model_map = {}
+
+def gen_otpseed():
+	return base64.b32encode(secrets.token_bytes(10)).decode(encoding='utf-8')
+class User(AbstractUser):
+	class UserRoleChoices(TextChoices):
+		PATIENT = "patient"
+		DOCTOR = "doctor"
+		HOSPITAL = "hospital"
+		PHARMACY = "pharmacy"
+		INSURANCE = "insurance"
+	
+	@property
+	def totp(self):
+		return mintotp.totp(self.OTP_seed)
+		
+	role = models.TextField(choices=UserRoleChoices.choices, null=True)
+	OTP_seed = encrypt(models.TextField(default=gen_otpseed))
+	
+	@property
+	def profile(self):
+		match(self.role):
+			case self.UserRoleChoices.DOCTOR: return self.doctor
+			case self.UserRoleChoices.PATIENT: return self.patient
+			case self.UserRoleChoices.HOSPITAL: return self.hospital
+			case self.UserRoleChoices.PHARMACY: return self.pharmacy
+			case self.UserRoleChoices.INSURANCE: return self.insurance
+		return None
+	
 
 class Profile(models.Model):
 	user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='%(class)s')
 	bio = models.TextField(max_length=500, blank=True)
+	approved = models.BooleanField(default=False)
 
 	@property
 	def full_name(self):
 		return self.user.first_name + " " + self.user.last_name
-	
-	class Meta:
-		abstract = True
 
 class Individual(Profile):
 	def delete(self, using=None, keep_parents=False):

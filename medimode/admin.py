@@ -3,14 +3,18 @@ from functools import lru_cache
 from django.contrib import admin
 from django.contrib.admin import AdminSite
 
-from .models import Profile, Individual, Doctor, Patient, Hospital, Pharmacy, Insurance, Document, Organisation, User
+from .models import Profile, Individual, Doctor, Patient, Hospital, Pharmacy, Insurance, Document, Organisation,\
+	Transaction, Ticket, Shareable, Ticket_Shareable, User
 
 # Register your models here.
 model_hierarchy ={
+	"Base": [User, Profile],
 	"Individual": [Doctor, Patient],
 	"Organistaion": [Hospital, Pharmacy, Insurance],
-	"Documents": [Document],
+	"Documents": [Document, Shareable, Ticket_Shareable],
+	"Interaction": [Ticket, Transaction]
 }
+
 class MyAdminSite(AdminSite):
 	@lru_cache
 	def get_app_list(self, request, app_label=None):
@@ -29,15 +33,10 @@ class MyAdminSite(AdminSite):
 								models_list.append(model_dict)
 					temp_down[-1]["models"] = models_list
 		return temp_down
-	
+
 admin.site = MyAdminSite()
 
-admin.site.register(Doctor)
-admin.site.register(Patient)
-
-admin.site.register(Hospital)
-admin.site.register(Pharmacy)
-admin.site.register(Insurance)
-
-admin.site.register(Document)
-admin.site.register(User)
+for model_list in model_hierarchy.values():
+	for model in model_list:
+		admin.site.register(model)
+		

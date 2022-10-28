@@ -1,7 +1,8 @@
+from django.contrib.auth.views import LoginView
 from django.http import Http404
-from django.views.generic import TemplateView, DetailView, ListView
+from django.views.generic import TemplateView, DetailView, ListView, CreateView
 
-from medimode.models import Insurance, Hospital, Pharmacy, Doctor
+from medimode.models import Insurance, Hospital, Pharmacy, Doctor, Shareable
 
 class Home(TemplateView):
 	template_name = "medimode/home.html"
@@ -42,3 +43,13 @@ class Catalogue(ListView):
 		ctx['is_org'] = (self.kwargs['category'] in ('hospital', 'pharmacy', 'insurance'))
 		return ctx
 	
+class ShareDocument(CreateView):
+	model = Shareable
+	fields = ['doc_file', 'filename', 'shared_with']
+
+	def form_valid(self, form):
+		form.cleaned_data['owner'] = self.request.user
+		return super().form_valid(form)
+
+class Login(LoginView):
+	pass
