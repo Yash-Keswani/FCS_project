@@ -9,3 +9,6 @@ class Document(models.Model):
 	# Document validation can be performed
 	doc_file = models.FileField(upload_to='uploads/documents')
 	filename = models.CharField(max_length=100)
+
+	def __str__(self):
+		return self.filename

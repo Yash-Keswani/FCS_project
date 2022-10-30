@@ -1,8 +1,18 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
-from django.http import Http404
+from django.core.exceptions import ValidationError
+from django.http import Http404, HttpRequest, HttpResponse
+from django.shortcuts import render
+from django.urls import reverse, reverse_lazy
+from django.views import View
 from django.views.generic import TemplateView, DetailView, ListView, CreateView
 
-from medimode.models import Insurance, Hospital, Pharmacy, Doctor, Shareable
+from medimode.models import Insurance, Hospital, Pharmacy, Doctor, Shareable, User, Ticket, Profile, Ticket_Shareable
+
+def verifyOTP(request):
+	otp_given = request.POST.get("otp")
+	otp_actual = request.user.totp
+	return otp_given == otp_actual
 
 class Home(TemplateView):
 	template_name = "medimode/home.html"
@@ -11,6 +21,9 @@ class Home(TemplateView):
 		context = super().get_context_data(**kwargs)
 		context["test"] = "This value is useless"
 		return context
+
+class OTPSeed(TemplateView, LoginRequiredMixin):
+	template_name = "medimode/my_seed.html"
 
 class InsuranceView(DetailView):
 	model = Insurance
@@ -46,10 +59,49 @@ class Catalogue(ListView):
 class ShareDocument(CreateView):
 	model = Shareable
 	fields = ['doc_file', 'filename', 'shared_with']
+	success_url = reverse_lazy('medimode_index')
 
+"""
+class IssueTicket(CreateView):
+	model = Ticket
+	fields = ['issued', 'shareables', 'description']
+	success_url = reverse_lazy('medimode_index')
+	
 	def form_valid(self, form):
-		form.cleaned_data['owner'] = self.request.user
+		form.cleaned_data["issuer"] = self.request.user
 		return super().form_valid(form)
+"""
 
+# noinspection PyMethodMayBeStatic
+class IssueTicket(View):
+	def get(self, request: HttpRequest):
+		ctx = {}
+		ctx['shareables'] = Shareable.objects.filter(owner=request.user.profile)
+		ctx['issued'] = Profile.objects.get(pk=int(request.GET.get('issued_to')))
+		return render(request, template_name="medimode/ticket_form.html", context=ctx)
+	
+	def post(self, request: HttpRequest):
+		_issuer = request.user.profile
+		_issued = Profile.objects.get(pk=request.POST.get("issued"))
+		_description = request.POST.get("description")
+		_shareables = [Shareable.objects.get(pk=x) for x in request.POST.get("shareables")]
+		_otp = request.POST.get("otp")
+		if not verifyOTP(request):
+			# raise ValidationError("Invalid OTP provided")
+			pass
+		
+		tkt_shareables=[]
+		for shareable in _shareables:
+			tkt_shareable = Ticket_Shareable(shareable_ptr_id=shareable.id)
+			tkt_shareable.party = Ticket_Shareable.PARTY.ISSUER
+			tkt_shareable.save_base(raw=True)
+			tkt_shareables.append(tkt_shareable)
+		tkt = Ticket(issuer=_issuer, issued=_issued, description=_description)
+		tkt.save()
+		tkt.shareables.add(*tkt_shareables)
+		tkt.save()
+		
+		return render(request, reverse('issue_ticket'))
+		
 class Login(LoginView):
-	pass
+	next_page = reverse_lazy("medimode_index")

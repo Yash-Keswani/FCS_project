@@ -1,0 +1,28 @@
+<form action="/medimode/issue_ticket" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <tr>
+        <th><label for="id_shareables">Shareables:</label></th>
+        <td>
+            <select name="shareables" required id="id_shareables" multiple>
+                {% for shareable in shareables %}
+                    <option value="{{ shareable.pk }}">{{ shareable.filename }}</option>
+                {% endfor %}
+            </select>
+        </td>
+    </tr>
+    <tr>
+        <th><label for="id_description">Description:</label></th>
+        <td>
+      <textarea name="description" cols="40" rows="10" maxlength="32000" required id="id_description">
+</textarea>
+        </td>
+    </tr>
+    <tr>
+        <th><label for="id_otp">OTP:</label></th>
+        <td>
+            <input type="number" name="otp" required id="id_otp"/>
+        </td>
+    </tr>
+    <input type="hidden" id="id_issued" name="issued" value="{{ issued.id }}"/>
+    <input type="submit" value="Submit">
+</form>

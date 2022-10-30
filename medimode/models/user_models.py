@@ -48,6 +48,9 @@ class Profile(models.Model):
 	@property
 	def full_name(self):
 		return self.user.first_name + " " + self.user.last_name
+	
+	def __str__(self):
+		return self.full_name
 
 class Individual(Profile):
 	def delete(self, using=None, keep_parents=False):
