@@ -4,6 +4,7 @@ from django.http import Http404
 from django.views.generic import TemplateView, DetailView, ListView, CreateView
 
 from medimode.models import Insurance, Hospital, Pharmacy, Doctor, Shareable
+from django.urls import reverse_lazy
 
 class Home(LoginRequiredMixin,TemplateView):
 	template_name = "medimode/home.html"
@@ -66,4 +67,5 @@ class ShareDocument(LoginRequiredMixin,CreateView):
 		return super().form_valid(form)
 
 class Login(LoginView):
+	next_page=reverse_lazy("medimode_index");
 	pass
