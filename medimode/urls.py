@@ -22,6 +22,7 @@ urlpatterns = [
 	
 	path('login', views.Login.as_view(), name='login'),
 	path('myseed', views.OTPSeed.as_view(), name='seed'),
+	path('my_tickets', views.MyTickets.as_view(), name='my_tickets'),
 	
 	path('catalogue/<str:category>', views.Catalogue.as_view(), name='catalogue'),
 	
@@ -32,5 +33,5 @@ urlpatterns = [
 	path('doctor/<int:pk>', views.DoctorView.as_view(), name='doctor_details'),
 	
 	path('share_document', views.ShareDocument.as_view(), name='share_document'),
-	path('issue_ticket', views.IssueTicket.as_view(), name='issue_ticket')
+	path('issue_ticket', views.IssueTicket.as_view(), name='issue_ticket'),
 ]

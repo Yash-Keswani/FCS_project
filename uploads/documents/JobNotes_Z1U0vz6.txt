@@ -1,0 +1,29 @@
+CURRENT
+-------
+-> should financial requests have a stipend tenure from 15 to 15 or 1 to 30/31?
+-> what happens to financial requests after they get rejected?
+
+
+ARCHIVE
+-------
+numbers
+total collected data
+number of resovled tickets / requests
+total number of job posts
+stipends
+averages
+
+graphs of...- one IRD
+
+- RIMS
+> collecting accomplishments of faculty members at a certain place. 
+> collected and analysed at different levels. 
+> disseminated to different stakeholders whenever information is needed. 
+> annual performance report. unused tool.
+> need to bring alive by mid of next month.
+
+- ARMS 
+> faculty upload annual documents here
+> compile results
+> each of us get score
+> additional benefits are decided based on that

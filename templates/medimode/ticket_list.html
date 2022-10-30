@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Your Tickets</title>
+</head>
+<body>
+<ul>
+    {% for ticket in object_list %}
+        <li><a href="/medimode/ticket/{{ ticket.id }}">From {{ ticket.issuer.full_name }} - {{ ticket.description }}</a>
+        </li>
+    {% endfor %}
+</ul>
+</body>
+</html>

@@ -1,6 +1,7 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 from django.http import Http404
 from django.http import HttpRequest
 from django.shortcuts import render, redirect
@@ -18,7 +19,6 @@ def verifyOTP(request):
 
 class Home(LoginRequiredMixin, TemplateView):
 	template_name = "medimode/home.html"
-	login_url = '/medimode/login'
 	
 	def get_context_data(self, **kwargs):
 		context = super().get_context_data(**kwargs)
@@ -64,14 +64,20 @@ class Catalogue(LoginRequiredMixin, ListView):
 		ctx['is_org'] = (self.kwargs['category'] in ('hospital', 'pharmacy', 'insurance'))
 		return ctx
 
-class ShareDocument(LoginRequiredMixin, CreateView):
+
+class ShareDocument(CreateView):
 	login_url = '/medimode/login'
 	model = Shareable
 	fields = ['doc_file', 'filename', 'shared_with']
 	success_url = reverse_lazy('medimode_index')
 	
+	def get_context_data(self):
+		ctx = super().get_context_data()
+		ctx['profiles'] = Profile.objects.exclude(user=self.request.user)
+		return ctx
+	
 	def form_valid(self, form):
-		form.cleaned_data['owner'] = self.request.user
+		form.instance.owner = self.request.user.profile
 		return super().form_valid(form)
 
 # noinspection PyMethodMayBeStatic
@@ -87,24 +93,39 @@ class IssueTicket(View):
 		_issuer = request.user.profile
 		_issued = Profile.objects.get(pk=request.POST.get("issued"))
 		_description = request.POST.get("description")
-		_shareables = [Shareable.objects.get(pk=x) for x in request.POST.get("shareables")]
 		_otp = request.POST.get("otp")
+		
 		if not verifyOTP(request):
-			raise ValidationError("Invalid OTP provided")
-			pass
+			pass	# raise ValidationError("Invalid OTP provided")
 		
 		tkt_shareables = []
+		for _doc_file in request.FILES.getlist("doc_files"):
+			tkt_shareable = Ticket_Shareable(doc_file=_doc_file, filename=_doc_file.name, owner=request.user.profile, party=Ticket_Shareable.PARTY.ISSUER)
+			tkt_shareable.save()
+			tkt_shareable.shared_with.add(_issued)
+			tkt_shareable.save()
+			tkt_shareables.append(tkt_shareable)
+		"""
+		_shareables = []
+		if request.POST.get("shareables"):
+			_shareables = [Shareable.objects.get(pk=x) for x in request.POST.get("shareables")]
 		for shareable in _shareables:
 			tkt_shareable = Ticket_Shareable(shareable_ptr_id=shareable.id)
 			tkt_shareable.party = Ticket_Shareable.PARTY.ISSUER
 			tkt_shareable.save_base(raw=True)
+			tkt_shareable.shared_with.add(_issuer)
 			tkt_shareables.append(tkt_shareable)
+		"""
 		tkt = Ticket(issuer=_issuer, issued=_issued, description=_description)
 		tkt.save()
 		tkt.shareables.add(*tkt_shareables)
 		tkt.save()
 		
-		return redirect(request, reverse('issue_ticket'))
+		return redirect(to=reverse('issue_ticket'))
+
+class MyTickets(ListView):
+	def get_queryset(self):
+		return Ticket.objects.filter(Q(issued=self.request.user.profile) | Q(issuer=self.request.user.profile))
 
 class Login(LoginView):
 	next_page = reverse_lazy("medimode_index")

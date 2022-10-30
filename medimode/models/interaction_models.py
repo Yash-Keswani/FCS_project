@@ -5,7 +5,7 @@ from medimode.models import Document, Profile
 
 class Shareable(Document):
 	owner = models.ForeignKey(to=Profile, on_delete=models.DO_NOTHING, related_name='owned_shareables')
-	shared_with = models.ManyToManyField(to=Profile, related_name='can_access')
+	shared_with = models.ManyToManyField(to=Profile, related_name='can_access', blank=True)
 	
 class Transaction(models.Model):
 	sender = models.ForeignKey(to=Profile, on_delete=models.DO_NOTHING, related_name='sent_transactions')
@@ -24,5 +24,5 @@ class Ticket(models.Model):
 	issuer = models.ForeignKey(to=Profile, on_delete=models.DO_NOTHING, related_name='issued_tickets')
 	issued = models.ForeignKey(to=Profile, on_delete=models.DO_NOTHING, related_name='accepted_tickets')
 	description = models.TextField(max_length=32000)
-	shareables = models.ManyToManyField(to=Ticket_Shareable, related_name='owner_ticket')
+	shareables = models.ManyToManyField(to=Ticket_Shareable, related_name='owner_ticket', blank=True)
 	transaction = models.OneToOneField(to=Transaction, related_name='ticket', on_delete=models.RESTRICT, null=True)

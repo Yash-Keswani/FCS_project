@@ -1,9 +1,13 @@
 <form action="/medimode/issue_ticket" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     <tr>
+        <th><label for="id_doc_files">Uploads:</label></th>
+        <td>
+            <input type="file" name="doc_files" id="id_doc_files" multiple>
+        </td>
         <th><label for="id_shareables">Shareables:</label></th>
         <td>
-            <select name="shareables" required id="id_shareables" multiple>
+            <select name="shareables" id="id_shareables" multiple>
                 {% for shareable in shareables %}
                     <option value="{{ shareable.pk }}">{{ shareable.filename }}</option>
                 {% endfor %}

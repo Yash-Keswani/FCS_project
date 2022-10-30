@@ -1,5 +1,28 @@
 <form action="/medimode/share_document" method="post" enctype="multipart/form-data">
     {% csrf_token %}
-    {{ form }}
+    <tr>
+        <th><label for="id_doc_file">Doc file:</label></th>
+        <td>
+            <input type="file" name="doc_file" required id="id_doc_file">
+        </td>
+    </tr>
+
+    <tr>
+        <th><label for="id_filename">Filename:</label></th>
+        <td>
+            <input type="text" name="filename" maxlength="100" required id="id_filename">
+        </td>
+    </tr>
+
+    <tr>
+        <th><label for="id_shared_with">Shared with:</label></th>
+        <td>
+            <select name="shared_with" id="id_shared_with" multiple>
+                {% for profile in profiles %}
+                    <option value="{{ profile.pk }}">{{ profile.full_name }}</option>
+                {% endfor %}
+            </select>
+        </td>
+    </tr>
     <input type="submit" value="Submit">
 </form>
