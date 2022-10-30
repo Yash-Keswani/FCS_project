@@ -33,5 +33,6 @@ urlpatterns = [
 	path('doctor/<int:pk>', views.DoctorView.as_view(), name='doctor_details'),
 	
 	path('share_document', views.ShareDocument.as_view(), name='share_document'),
+	path('ticket/<int:pk>', views.TicketView.as_view(), name='ticket_view'),
 	path('issue_ticket', views.IssueTicket.as_view(), name='issue_ticket'),
 ]
