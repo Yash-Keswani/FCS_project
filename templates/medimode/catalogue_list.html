@@ -1,26 +1,33 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
     <title>{{ model }} catalogue</title>
-
+    <link href="{% static 'home.css' %}" rel="stylesheet" />
 </head>
 <body>
     {% block content %}
-        <h2>{{ model_plural }}</h2>
-        <ul>
+    <h2 class="text-center">{{ model_plural }}</h2>
+    <br>
+    <br>
+        <div class="centre">
+            <ul>
             {% for user in object_list %}
                 {% if model == "Hospital" %}
-                <li><a href="/medimode/hospital/{{ user.id }}">{{ user.full_name }} - {{ user.bio }}</a></li>
+                <li><a href="/medimode/hospital/{{ user.id }}">{{ user.full_name }} - {{ user.bio }}</a></li><br>
                 {% elif model == "Doctor" %}
-                <li><a href="/medimode/doctor/{{ user.id }}">{{ user.full_name }} - {{ user.bio }}</a></li>
+                <li><a href="/medimode/doctor/{{ user.id }}">{{ user.full_name }} - {{ user.bio }}</a></li><br>
                 {% elif model == "Insurance" %}
-                <li><a href="/medimode/insurance/{{ user.id }}">{{ user.full_name }} - {{ user.bio }}</a></li>
+                <li><a href="/medimode/insurance/{{ user.id }}">{{ user.full_name }} - {{ user.bio }}</a><br></li><br>
                 {% elif model == "Pharmacy" %}
-                <li><a href="/medimode/pharmacy/{{ user.id }}">{{ user.full_name }} - {{ user.bio }}</a></li>
+                <li><a href="/medimode/pharmacy/{{ user.id }}">{{ user.full_name }} - {{ user.bio }}</a><br></li><br>
                 {% endif %}
             {% endfor %}
         </ul>
+        </div>
+
     {% endblock %}
 </body>
 </html>
