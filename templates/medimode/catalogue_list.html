@@ -10,7 +10,7 @@
         <h2>{{ model_plural }}</h2>
         <ul>
             {% for user in object_list %}
-                <li>{{ user.full_name }} - {{ user.bio }}</li>
+                <li><a href="/medimode/hospital/{{ user.id }}">{{ user.full_name }} - {{ user.bio }}</a></li>
             {% endfor %}
         </ul>
     {% endblock %}
