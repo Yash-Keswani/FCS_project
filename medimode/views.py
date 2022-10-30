@@ -108,3 +108,8 @@ class IssueTicket(View):
 
 class Login(LoginView):
 	next_page = reverse_lazy("medimode_index")
+
+class TicketView(LoginRequiredMixin, DetailView):
+	login_url = '/medimode/login'
+	template_name = "medimode/ticketDetail.html"
+	model = Ticket
