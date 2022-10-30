@@ -7,25 +7,36 @@ from medimode.models import Insurance, Hospital, Pharmacy, Doctor, Shareable
 
 class Home(LoginRequiredMixin,TemplateView):
 	template_name = "medimode/home.html"
-	
+	login_url = '/medimode/login'
+	redirect_field_name = ''
 	def get_context_data(self, **kwargs):
 		context = super().get_context_data(**kwargs)
 		context["test"] = "This value is useless"
 		return context
 
 class InsuranceView(LoginRequiredMixin,DetailView):
+	login_url = '/medimode/login'
+	redirect_field_name = ''
 	model = Insurance
 
 class DoctorView(LoginRequiredMixin,DetailView):
+	login_url = '/medimode/login'
+	redirect_field_name = ''
 	model = Doctor
 
 class PharmacyView(LoginRequiredMixin,DetailView):
+	login_url = '/medimode/login'
+	redirect_field_name = ''
 	model = Pharmacy
 
 class HospitalView(LoginRequiredMixin,DetailView):
+	login_url = '/medimode/login'
+	redirect_field_name = ''
 	model = Hospital
 	
 class Catalogue(LoginRequiredMixin,ListView):
+	login_url = '/medimode/login'
+	redirect_field_name = ''
 	template_name = "medimode/catalogue_list.html"
 	model_mapping = {"hospital": Hospital, "pharmacy": Pharmacy, "insurance": Insurance, "doctor": Doctor}
 	
@@ -45,6 +56,8 @@ class Catalogue(LoginRequiredMixin,ListView):
 		return ctx
 	
 class ShareDocument(LoginRequiredMixin,CreateView):
+	login_url = '/medimode/login'
+	redirect_field_name = ''
 	model = Shareable
 	fields = ['doc_file', 'filename', 'shared_with']
 
