@@ -10,7 +10,15 @@
         <h2>{{ model_plural }}</h2>
         <ul>
             {% for user in object_list %}
+                {% if model == "Hospital" %}
                 <li><a href="/medimode/hospital/{{ user.id }}">{{ user.full_name }} - {{ user.bio }}</a></li>
+                {% elif model == "Doctor" %}
+                <li><a href="/medimode/doctor/{{ user.id }}">{{ user.full_name }} - {{ user.bio }}</a></li>
+                {% elif model == "Insurance" %}
+                <li><a href="/medimode/insurance/{{ user.id }}">{{ user.full_name }} - {{ user.bio }}</a></li>
+                {% elif model == "Pharmacy" %}
+                <li><a href="/medimode/pharmacy/{{ user.id }}">{{ user.full_name }} - {{ user.bio }}</a></li>
+                {% endif %}
             {% endfor %}
         </ul>
     {% endblock %}
