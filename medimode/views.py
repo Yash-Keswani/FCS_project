@@ -1,27 +1,25 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
 from django.core.exceptions import ValidationError
-from django.http import Http404, HttpRequest, HttpResponse
-from django.shortcuts import render
-from django.urls import reverse, reverse_lazy
-from django.views import View
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404
+from django.http import HttpRequest
+from django.shortcuts import render, redirect
+from django.urls import reverse
+from django.urls import reverse_lazy
+from django.views import View
 from django.views.generic import TemplateView, DetailView, ListView, CreateView
 
-from medimode.models import Insurance, Hospital, Pharmacy, Doctor, Shareable
-from django.urls import reverse_lazy
-from medimode.models import Insurance, Hospital, Pharmacy, Doctor, Shareable, User, Ticket, Profile, Ticket_Shareable
+from medimode.models import Insurance, Hospital, Pharmacy, Doctor, Shareable, Ticket, Profile, Ticket_Shareable
 
 def verifyOTP(request):
 	otp_given = request.POST.get("otp")
 	otp_actual = request.user.totp
 	return otp_given == otp_actual
 
-class Home(LoginRequiredMixin,TemplateView):
+class Home(LoginRequiredMixin, TemplateView):
 	template_name = "medimode/home.html"
 	login_url = '/medimode/login'
-	redirect_field_name = ''
+	
 	def get_context_data(self, **kwargs):
 		context = super().get_context_data(**kwargs)
 		context["test"] = "This value is useless"
@@ -30,29 +28,24 @@ class Home(LoginRequiredMixin,TemplateView):
 class OTPSeed(TemplateView, LoginRequiredMixin):
 	template_name = "medimode/my_seed.html"
 
-class InsuranceView(LoginRequiredMixin,DetailView):
+class InsuranceView(LoginRequiredMixin, DetailView):
 	login_url = '/medimode/login'
-	redirect_field_name = ''
 	model = Insurance
 
-class DoctorView(LoginRequiredMixin,DetailView):
+class DoctorView(LoginRequiredMixin, DetailView):
 	login_url = '/medimode/login'
-	redirect_field_name = ''
 	model = Doctor
 
-class PharmacyView(LoginRequiredMixin,DetailView):
+class PharmacyView(LoginRequiredMixin, DetailView):
 	login_url = '/medimode/login'
-	redirect_field_name = ''
 	model = Pharmacy
 
-class HospitalView(LoginRequiredMixin,DetailView):
+class HospitalView(LoginRequiredMixin, DetailView):
 	login_url = '/medimode/login'
-	redirect_field_name = ''
 	model = Hospital
-	
-class Catalogue(LoginRequiredMixin,ListView):
+
+class Catalogue(LoginRequiredMixin, ListView):
 	login_url = '/medimode/login'
-	redirect_field_name = ''
 	template_name = "medimode/catalogue_list.html"
 	model_mapping = {"hospital": Hospital, "pharmacy": Pharmacy, "insurance": Insurance, "doctor": Doctor}
 	
@@ -70,14 +63,13 @@ class Catalogue(LoginRequiredMixin,ListView):
 		ctx['model_plural'] = cat._meta.verbose_name_plural.title()
 		ctx['is_org'] = (self.kwargs['category'] in ('hospital', 'pharmacy', 'insurance'))
 		return ctx
-	
-class ShareDocument(LoginRequiredMixin,CreateView):
+
+class ShareDocument(LoginRequiredMixin, CreateView):
 	login_url = '/medimode/login'
-	redirect_field_name = ''
 	model = Shareable
 	fields = ['doc_file', 'filename', 'shared_with']
 	success_url = reverse_lazy('medimode_index')
-
+	
 	def form_valid(self, form):
 		form.cleaned_data['owner'] = self.request.user
 		return super().form_valid(form)
@@ -85,9 +77,10 @@ class ShareDocument(LoginRequiredMixin,CreateView):
 # noinspection PyMethodMayBeStatic
 class IssueTicket(View):
 	def get(self, request: HttpRequest):
-		ctx = {}
-		ctx['shareables'] = Shareable.objects.filter(owner=request.user.profile)
-		ctx['issued'] = Profile.objects.get(pk=int(request.GET.get('issued_to')))
+		ctx = {
+			'shareables': Shareable.objects.filter(owner=request.user.profile),
+			'issued': Profile.objects.get(pk=int(request.GET.get('issued_to')))
+		}
 		return render(request, template_name="medimode/ticket_form.html", context=ctx)
 	
 	def post(self, request: HttpRequest):
@@ -97,10 +90,10 @@ class IssueTicket(View):
 		_shareables = [Shareable.objects.get(pk=x) for x in request.POST.get("shareables")]
 		_otp = request.POST.get("otp")
 		if not verifyOTP(request):
-			# raise ValidationError("Invalid OTP provided")
+			raise ValidationError("Invalid OTP provided")
 			pass
 		
-		tkt_shareables=[]
+		tkt_shareables = []
 		for shareable in _shareables:
 			tkt_shareable = Ticket_Shareable(shareable_ptr_id=shareable.id)
 			tkt_shareable.party = Ticket_Shareable.PARTY.ISSUER
@@ -111,7 +104,7 @@ class IssueTicket(View):
 		tkt.shareables.add(*tkt_shareables)
 		tkt.save()
 		
-		return render(request, reverse('issue_ticket'))
-		
+		return redirect(request, reverse('issue_ticket'))
+
 class Login(LoginView):
 	next_page = reverse_lazy("medimode_index")
