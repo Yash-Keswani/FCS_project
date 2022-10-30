@@ -3,7 +3,7 @@
     <tr>
         <th><label for="id_shareables">Shareables:</label></th>
         <td>
-            <select name="shareables" required id="id_shareables" multiple>
+            <select name="shareables" id="id_shareables" multiple>
                 {% for shareable in shareables %}
                     <option value="{{ shareable.pk }}">{{ shareable.filename }}</option>
                 {% endfor %}
