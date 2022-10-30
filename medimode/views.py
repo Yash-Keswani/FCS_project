@@ -5,8 +5,12 @@ from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.urls import reverse, reverse_lazy
 from django.views import View
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import Http404
 from django.views.generic import TemplateView, DetailView, ListView, CreateView
 
+from medimode.models import Insurance, Hospital, Pharmacy, Doctor, Shareable
+from django.urls import reverse_lazy
 from medimode.models import Insurance, Hospital, Pharmacy, Doctor, Shareable, User, Ticket, Profile, Ticket_Shareable
 
 def verifyOTP(request):
@@ -14,9 +18,10 @@ def verifyOTP(request):
 	otp_actual = request.user.totp
 	return otp_given == otp_actual
 
-class Home(TemplateView):
+class Home(LoginRequiredMixin,TemplateView):
 	template_name = "medimode/home.html"
-	
+	login_url = '/medimode/login'
+	redirect_field_name = ''
 	def get_context_data(self, **kwargs):
 		context = super().get_context_data(**kwargs)
 		context["test"] = "This value is useless"
@@ -25,19 +30,29 @@ class Home(TemplateView):
 class OTPSeed(TemplateView, LoginRequiredMixin):
 	template_name = "medimode/my_seed.html"
 
-class InsuranceView(DetailView):
+class InsuranceView(LoginRequiredMixin,DetailView):
+	login_url = '/medimode/login'
+	redirect_field_name = ''
 	model = Insurance
 
-class DoctorView(DetailView):
+class DoctorView(LoginRequiredMixin,DetailView):
+	login_url = '/medimode/login'
+	redirect_field_name = ''
 	model = Doctor
 
-class PharmacyView(DetailView):
+class PharmacyView(LoginRequiredMixin,DetailView):
+	login_url = '/medimode/login'
+	redirect_field_name = ''
 	model = Pharmacy
 
-class HospitalView(DetailView):
+class HospitalView(LoginRequiredMixin,DetailView):
+	login_url = '/medimode/login'
+	redirect_field_name = ''
 	model = Hospital
 	
-class Catalogue(ListView):
+class Catalogue(LoginRequiredMixin,ListView):
+	login_url = '/medimode/login'
+	redirect_field_name = ''
 	template_name = "medimode/catalogue_list.html"
 	model_mapping = {"hospital": Hospital, "pharmacy": Pharmacy, "insurance": Insurance, "doctor": Doctor}
 	
@@ -56,21 +71,16 @@ class Catalogue(ListView):
 		ctx['is_org'] = (self.kwargs['category'] in ('hospital', 'pharmacy', 'insurance'))
 		return ctx
 	
-class ShareDocument(CreateView):
+class ShareDocument(LoginRequiredMixin,CreateView):
+	login_url = '/medimode/login'
+	redirect_field_name = ''
 	model = Shareable
 	fields = ['doc_file', 'filename', 'shared_with']
 	success_url = reverse_lazy('medimode_index')
 
-"""
-class IssueTicket(CreateView):
-	model = Ticket
-	fields = ['issued', 'shareables', 'description']
-	success_url = reverse_lazy('medimode_index')
-	
 	def form_valid(self, form):
-		form.cleaned_data["issuer"] = self.request.user
+		form.cleaned_data['owner'] = self.request.user
 		return super().form_valid(form)
-"""
 
 # noinspection PyMethodMayBeStatic
 class IssueTicket(View):

@@ -1,10 +1,30 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Hello World</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    
+    <!-- <link rel="stylesheet" href="{{ STATIC_URL }}login.css" /> -->
+    <link href="{% static 'home.css' %}" rel="stylesheet" />
 </head>
 <body>
-Hello World
+    <div className="navbar">
+        <div className="Options">
+            <a href="/medimode/catalogue/hospital">Hospitals </a>
+            <br>
+            <a href="/medimode/catalogue/doctor">Doctors</a>
+            <br>
+            <a href="/medimode/catalogue/insurance">Insurance</a>
+            <br>
+            <a href="/medimode/catalogue/pharmacy">Pharmacies</a>
+            <br>
+        </div>
+        <div className="Profile">
+            <a href="">Profile</a>  
+            <h1>{{object.user.full_name}}</h1>
+        </div>    
+    </div>
 </body>
 </html>
