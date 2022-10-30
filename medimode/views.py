@@ -1,10 +1,11 @@
 from django.contrib.auth.views import LoginView
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404
 from django.views.generic import TemplateView, DetailView, ListView, CreateView
 
 from medimode.models import Insurance, Hospital, Pharmacy, Doctor, Shareable
 
-class Home(TemplateView):
+class Home(LoginRequiredMixin,TemplateView):
 	template_name = "medimode/home.html"
 	
 	def get_context_data(self, **kwargs):
@@ -12,19 +13,19 @@ class Home(TemplateView):
 		context["test"] = "This value is useless"
 		return context
 
-class InsuranceView(DetailView):
+class InsuranceView(LoginRequiredMixin,DetailView):
 	model = Insurance
 
-class DoctorView(DetailView):
+class DoctorView(LoginRequiredMixin,DetailView):
 	model = Doctor
 
-class PharmacyView(DetailView):
+class PharmacyView(LoginRequiredMixin,DetailView):
 	model = Pharmacy
 
-class HospitalView(DetailView):
+class HospitalView(LoginRequiredMixin,DetailView):
 	model = Hospital
 	
-class Catalogue(ListView):
+class Catalogue(LoginRequiredMixin,ListView):
 	template_name = "medimode/catalogue_list.html"
 	model_mapping = {"hospital": Hospital, "pharmacy": Pharmacy, "insurance": Insurance, "doctor": Doctor}
 	
@@ -43,7 +44,7 @@ class Catalogue(ListView):
 		ctx['is_org'] = (self.kwargs['category'] in ('hospital', 'pharmacy', 'insurance'))
 		return ctx
 	
-class ShareDocument(CreateView):
+class ShareDocument(LoginRequiredMixin,CreateView):
 	model = Shareable
 	fields = ['doc_file', 'filename', 'shared_with']
 
