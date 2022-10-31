@@ -5,8 +5,18 @@
     <title>Ticket Information</title>
 </head>
 <body>
-<h1>{{ object.issuer }}</h1>
-<p>Issued : {{ object.issued }}</p>
+<p>Issued by: {{ object.issuer }}</p>
+<p>Issued to: {{ object.issued }}</p>
 <p>Description: {{ object.description }}</p>
+<br><br>
+<form enctype="multipart/form-data" target="_self">
+    Create Transaction of Value: <input type="number" name="money" id="id_money"/><br>
+    <select name="moneyreq" id="id_moneyreq">
+        <option id="req">Request</option>
+        <option id="pay">Pay</option>
+    </select><br>
+    <input type="file" value="Upload Documents" multiple/><br>
+    <input type="submit">
+</form>
 </body>
 </html>

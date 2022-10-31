@@ -1,23 +1,29 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
 from django.core.exceptions import ValidationError
 from django.db.models import Q
-from django.http import Http404
+from django.http import Http404, FileResponse, HttpResponseForbidden
 from django.http import HttpRequest
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.urls import reverse_lazy
 from django.views import View
-from django.views.generic import TemplateView, DetailView, ListView, CreateView
+from django.views.generic import UpdateView
 
 from medimode.models import Insurance, Hospital, Pharmacy, Doctor, Shareable, Ticket, Profile, Ticket_Shareable
+from medimode.views_base import AuthTemplateView, AuthDetailView, AuthListView, AuthCreateView
 
+#>> FUNCTIONS <<#
 def verifyOTP(request):
 	otp_given = request.POST.get("otp")
 	otp_actual = request.user.totp
 	return otp_given == otp_actual
 
-class Home(LoginRequiredMixin, TemplateView):
+#>> PUBLIC VIEWS <<#
+class Login(LoginView):
+	next_page = reverse_lazy("medimode_index")
+
+#>> LOGIN RESTRICTED VIEWS <<#
+class Home(AuthTemplateView):
 	template_name = "medimode/home.html"
 	
 	def get_context_data(self, **kwargs):
@@ -25,27 +31,22 @@ class Home(LoginRequiredMixin, TemplateView):
 		context["test"] = "This value is useless"
 		return context
 
-class OTPSeed(TemplateView, LoginRequiredMixin):
+class OTPSeed(AuthTemplateView):
 	template_name = "medimode/my_seed.html"
 
-class InsuranceView(LoginRequiredMixin, DetailView):
-	login_url = '/medimode/login'
+class InsuranceView(AuthDetailView):
 	model = Insurance
 
-class DoctorView(LoginRequiredMixin, DetailView):
-	login_url = '/medimode/login'
+class DoctorView(AuthDetailView):
 	model = Doctor
 
-class PharmacyView(LoginRequiredMixin, DetailView):
-	login_url = '/medimode/login'
+class PharmacyView(AuthDetailView):
 	model = Pharmacy
 
-class HospitalView(LoginRequiredMixin, DetailView):
-	login_url = '/medimode/login'
+class HospitalView(AuthDetailView):
 	model = Hospital
 
-class Catalogue(LoginRequiredMixin, ListView):
-	login_url = '/medimode/login'
+class Catalogue(AuthListView):
 	template_name = "medimode/catalogue_list.html"
 	model_mapping = {"hospital": Hospital, "pharmacy": Pharmacy, "insurance": Insurance, "doctor": Doctor}
 	
@@ -64,9 +65,25 @@ class Catalogue(LoginRequiredMixin, ListView):
 		ctx['is_org'] = (self.kwargs['category'] in ('hospital', 'pharmacy', 'insurance'))
 		return ctx
 
+class MyDocuments(AuthListView):
+	model = Shareable
 
-class ShareDocument(CreateView):
-	login_url = '/medimode/login'
+def delete_media(request, filepath):
+	file = get_object_or_404(Shareable, doc_file=filepath)
+	if request.user.profile == file.owner:
+		file.delete()
+		return redirect(to=reverse('my_documents'))
+	else:
+		return HttpResponseForbidden()
+
+def fetch_media(request, filepath):
+	file = get_object_or_404(Shareable, doc_file=filepath)
+	if request.user.profile in file.shared_with.all() or request.user.profile == file.owner:
+		return FileResponse(file.doc_file)
+	else:
+		return HttpResponseForbidden()
+		
+class ShareDocument(AuthCreateView):
 	model = Shareable
 	fields = ['doc_file', 'filename', 'shared_with']
 	success_url = reverse_lazy('medimode_index')
@@ -96,7 +113,7 @@ class IssueTicket(View):
 		_otp = request.POST.get("otp")
 		
 		if not verifyOTP(request):
-			pass	# raise ValidationError("Invalid OTP provided")
+			raise ValidationError("Invalid OTP provided")
 		
 		tkt_shareables = []
 		for _doc_file in request.FILES.getlist("doc_files"):
@@ -123,14 +140,20 @@ class IssueTicket(View):
 		
 		return redirect(to=reverse('issue_ticket'))
 
-class MyTickets(ListView):
+class MyTickets(AuthListView):
 	def get_queryset(self):
 		return Ticket.objects.filter(Q(issued=self.request.user.profile) | Q(issuer=self.request.user.profile))
 
-class Login(LoginView):
-	next_page = reverse_lazy("medimode_index")
-
-class TicketView(LoginRequiredMixin, DetailView):
-	login_url = '/medimode/login'
+class TicketView(AuthDetailView):
 	template_name = "medimode/ticketDetail.html"
-	model = Ticket
+
+	def get_context_data(self, **kwargs):
+		return {"object": get_object_or_404(Ticket, self.request.GET.get("pk"))}
+	
+	def post(self, request):
+		_money = request.POST.get("money")
+		_req = request.POST.get("moneyreq")
+		
+		if _req and _money:
+			payer, paid = (1,2)
+	
