@@ -1,0 +1,25 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <title>Approve Users</title>
+    <link href="{% static 'home.css' %}" rel="stylesheet" />
+</head>
+<body>
+{% block content %}
+    <form target="_self" method="post">
+        {% csrf_token %}
+        <div class="centre">
+            <select multiple required id="id_approved_users" name="approved_users">
+                {% for user in object_list %}
+                    <option value={{user.id}}>{{ user.full_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <input type="submit" value="Approve Users">
+    </form>
+{% endblock %}
+</body>
+</html>

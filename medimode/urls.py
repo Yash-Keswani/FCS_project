@@ -20,6 +20,9 @@ from medimode import views
 urlpatterns = [
 	path('', views.Home.as_view(), name='medimode_index'),
 	
+	path('approve_users', views.ApproveUsers.as_view(), name='approve_users'),
+	path('remove_users', views.RemoveUsers.as_view(), name='remove_users'),
+	
 	path('login', views.Login.as_view(), name='login'),
 	path('myseed', views.OTPSeed.as_view(), name='seed'),
 	path('my_tickets', views.MyTickets.as_view(), name='my_tickets'),

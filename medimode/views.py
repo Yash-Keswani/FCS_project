@@ -9,7 +9,7 @@ from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import UpdateView
 
-from medimode.models import Insurance, Hospital, Pharmacy, Doctor, Shareable, Ticket, Profile, Ticket_Shareable
+from medimode.models import Insurance, Hospital, Pharmacy, Doctor, Shareable, Ticket, Profile, Ticket_Shareable, User
 from medimode.views_base import AuthTemplateView, AuthDetailView, AuthListView, AuthCreateView
 
 #>> FUNCTIONS <<#
@@ -21,7 +21,42 @@ def verifyOTP(request):
 #>> PUBLIC VIEWS <<#
 class Login(LoginView):
 	next_page = reverse_lazy("medimode_index")
+	
+#>> ADMIN VIEWS <<#
+class ApproveUsers(AuthListView):
+	template_name = "medimode/approve_users.html"
+	model = Profile
+	
+	def get_queryset(self):
+		return Profile.objects.filter(approved=False)
+	
+	def post(self, request):
+		approved_users = request.POST.get("approved_users")
+		approved_profiles = [Profile.objects.get(pk=x) for x in approved_users]
+		
+		for profile in approved_profiles:
+			profile.approved = True
+			profile.save()
+		
+		return redirect(reverse('approve_users'))
 
+class RemoveUsers(AuthListView):
+	template_name = "medimode/reject_users.html"
+	model = Profile
+	
+	def get_queryset(self):
+		return Profile.objects.filter(approved=True)
+	
+	def post(self, request):
+		approved_users = request.POST.get("approved_users")
+		approved_profiles = [Profile.objects.get(pk=x) for x in approved_users]
+		
+		for profile in approved_profiles:
+			profile.approved = False
+			profile.save()
+		
+		return redirect(reverse('remove_users'))
+	
 #>> LOGIN RESTRICTED VIEWS <<#
 class Home(AuthTemplateView):
 	template_name = "medimode/home.html"
