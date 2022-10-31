@@ -10,18 +10,24 @@
     <link href="{% static 'home.css' %}" rel="stylesheet" />
 </head>
 <body>
-    <div className="navbar">
-        <div className="Options">
+    
+    <div class="navbar">
+        <img height="60px" src="{% static 'log.png' %}">    
+        <div class="centre">
+            
+        <div class="Options">
+            
             <a href="/medimode/catalogue/hospital">Hospitals </a>
-            <br>
+            
             <a href="/medimode/catalogue/doctor">Doctors</a>
-            <br>
+            
             <a href="/medimode/catalogue/insurance">Insurance</a>
-            <br>
+            
             <a href="/medimode/catalogue/pharmacy">Pharmacies</a>
-            <br>
+            
         </div>
-        <div className="Profile">
+        </div>
+        <div class="Profile">
             <a href="">Profile</a>  
             <h1>{{object.user.full_name}}</h1>
         </div>    

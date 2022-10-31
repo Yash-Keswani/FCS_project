@@ -1,11 +1,13 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Pharmacy Information</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
 </head>
 <body>
-<h1>{{ object.full_name }}</h1>
+<h2 class="text-center">{{ object.full_name }}</h2>
 <p>Contact Us at: {{ object.contact_number }}</p>
 <p>About Us: {{ object.bio }}</p>
 </body>

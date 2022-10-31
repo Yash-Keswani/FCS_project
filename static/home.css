@@ -1,8 +1,14 @@
 .Options {
     display: flex;
-    justify-content: space-around;
+    justify-content: space-between;
     align-items: center;
     margin-top: 10px;
+    grid-column: 3/4;
+    color: rgba(93, 193, 193, 0.973);
+  }
+  a{
+    margin-left: 10px;
+    margin-right: 10px;
     color: rgba(93, 193, 193, 0.973);
   }
   .Profile{
@@ -13,13 +19,25 @@
       margin-top: 10px;
       margin-right: 10px;
   }
+  .centre{
+        display: flex;
+        
+        justify-content: center;
+        align-items: center;
+  }
+  ul{
+    list-style-type: none; /* Remove bullets */
+    padding: 0; /* Remove padding */
+    margin: 0; /* Remove margins */
+  }
   h2{
-      justify-content: start;
+      justify-content: center;
       align-items: center;
       display: flex;
       height: 2rem;
       margin-left: 1rem;
       color: rgb(240, 111, 111);
+      text-align: center;
   }
   .navbar {
       width: 100%;
