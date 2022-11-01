@@ -25,6 +25,8 @@ urlpatterns = [
 	path('search', views.Search.as_view(), name='search'),
 	
 	path('login', views.Login.as_view(), name='login'),
+	path('signup/org', views.SignupOrg.as_view(), name='signup_org'),
+	
 	path('myseed', views.OTPSeed.as_view(), name='seed'),
 	path('my_tickets', views.MyTickets.as_view(), name='my_tickets'),
 	path('my_documents', views.MyDocuments.as_view(), name='my_documents'),

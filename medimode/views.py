@@ -3,14 +3,17 @@ import difflib
 from django.contrib.auth.views import LoginView
 from django.core.exceptions import ValidationError
 from django.db.models import Q
+from django.forms import modelform_factory
 from django.http import Http404, FileResponse, HttpResponseForbidden
 from django.http import HttpRequest
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.urls import reverse_lazy
 from django.views import View
+from django.views.generic import CreateView, TemplateView
 
-from medimode.models import Insurance, Hospital, Pharmacy, Doctor, Shareable, Ticket, Profile, Ticket_Shareable
+from medimode.models import Insurance, Hospital, Pharmacy, Doctor, Shareable, Ticket, Profile, Ticket_Shareable, \
+	Organisation, User
 from medimode.views_base import AuthTemplateView, AuthDetailView, AuthListView, AuthCreateView, AdminListView
 
 # >> FUNCTIONS << #
@@ -18,11 +21,40 @@ def verifyOTP(request):
 	otp_given = request.POST.get("otp")
 	otp_actual = request.user.totp
 	return otp_given == otp_actual
+	
+model_mapping = {"hospital": Hospital, "pharmacy": Pharmacy, "insurance": Insurance, "doctor": Doctor}
+def str_to_model(model_name):
+	return model_mapping.get(model_name)
 
 # >> PUBLIC VIEWS << #
 class Login(LoginView):
 	next_page = reverse_lazy("medimode_index")
-
+	
+class SignupOrg(TemplateView):
+	template_name = "medimode/signup/org.html"
+	
+	def get(self, request):
+		return render(request, 'medimode/signup/org.html',
+									{"form": modelform_factory(Organisation, exclude=[])})
+	
+	def post(self, request):
+		_post = self.request.POST
+		_files = self.request.FILES
+		_username = _post.get('username')
+		_password= _post.get('password')
+		_bio= _post.get('bio')
+		_contact= _post.get('contact_number')
+		_image0= _files.get('image0')
+		_image1= _files.get('image1')
+		_location= _post.get('location')
+		
+		tomake = str_to_model(_post.get("model"))
+		_user = User.objects.create_user(username=_username, first_name=_username, password=_password)
+		_user.save()
+		_model = tomake.objects.create(bio=_bio, user=_user, contact_number=_contact, image0=_image0, image1=_image1, location=_location)
+		_model.save()
+		return render(request, reverse('login'))
+	
 # >> ADMIN VIEWS << #
 class ApproveUsers(AdminListView):
 	template_name = "medimode/approve_users.html"
@@ -84,16 +116,15 @@ class HospitalView(AuthDetailView):
 
 class Catalogue(AuthListView):
 	template_name = "medimode/catalogue_list.html"
-	model_mapping = {"hospital": Hospital, "pharmacy": Pharmacy, "insurance": Insurance, "doctor": Doctor}
 	
 	def get_queryset(self):
-		cat = self.model_mapping.get(self.kwargs['category'])
+		cat = str_to_model(self.kwargs['category'])
 		if cat is None:
 			raise Http404()
 		return cat.objects.all()
 	
 	def get_context_data(self, *, object_list=None, **kwargs):
-		cat = self.model_mapping.get(self.kwargs['category'])
+		cat = str_to_model(self.kwargs['category'])
 		
 		ctx = super().get_context_data(object_list=object_list, kwargs=kwargs)
 		ctx['model'] = self.kwargs['category'].title()
@@ -196,10 +227,9 @@ class TicketView(AuthDetailView):
 
 class Search(AuthTemplateView):
 	template_name = "medimode/search.html"
-	model_mapping = {"hospital": Hospital, "pharmacy": Pharmacy, "insurance": Insurance, "doctor": Doctor}
 	
 	def post(self, request):
-		category = self.model_mapping.get(request.POST.get("category"))
+		category = str_to_model(request.POST.get("category"))
 		entity_name = request.POST.get("entity_name")
 		
 		all_objs = category.objects.all()

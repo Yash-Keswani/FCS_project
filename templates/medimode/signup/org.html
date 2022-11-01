@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sign Up</title>
+</head>
+<body>
+<form target="_self" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <table>
+        <tr>
+            <th><label for="id_username">Username:</label></th>
+            <td><input type="text" id="id_username" name="username"/></td>
+            <th><label for="id_password">Password:</label></th>
+            <td><input type="password" id="id_password" name="password"/></td>
+        </tr>
+        <tr>
+            <th><label for="id_model">Model:</label></th>
+            <td><select id="id_model" name="model">
+                <option value="pharmacy">Pharmacy</option>
+                <option value="insurance">Insurance Firm</option>
+                <option value="hospital">Hospital</option>
+            </select></td>
+        </tr>
+
+        <tr>
+            <th><label for="id_bio">Bio:</label></th>
+            <td>
+                <textarea name="bio" cols="40" rows="10" maxlength="500" id="id_bio"></textarea>
+            </td>
+        </tr>
+
+        <tr>
+            <th><label for="id_contact_number">Contact number:</label></th>
+            <td>
+                <input type="number" name="contact_number" min="-9223372036854775808" max="9223372036854775807" required
+                       id="id_contact_number">
+            </td>
+        </tr>
+
+        <tr>
+            <th><label for="id_image0">Image0:</label></th>
+            <td>
+                <input type="file" name="image0" accept="image/*" required id="id_image0">
+            </td>
+        </tr>
+
+        <tr>
+            <th><label for="id_image1">Image1:</label></th>
+            <td>
+                <input type="file" name="image1" accept="image/*" required id="id_image1">
+            </td>
+        </tr>
+
+        <tr>
+            <th><label for="id_location">Location:</label></th>
+            <td>
+                <textarea name="location" cols="40" rows="10" maxlength="200" required id="id_location"> </textarea>
+            </td>
+        </tr>
+        <tr>
+            <td><input type="submit" value="submit"/></td>
+        </tr>
+    </table>
+</form>
+</body>
+</html>
+</body>
+</html>

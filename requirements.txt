@@ -1,0 +1,4 @@
+Django~=4.1.1
+stripe~=4.2.0
+PyJWT~=2.6.0
+mintotp~=0.3.0
