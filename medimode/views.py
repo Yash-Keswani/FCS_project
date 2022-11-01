@@ -1,10 +1,11 @@
 import difflib
+import hashlib
 
 from django.contrib.auth.views import LoginView
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.forms import modelform_factory
-from django.http import Http404, FileResponse, HttpResponseForbidden
+from django.http import Http404, FileResponse, HttpResponseForbidden, HttpResponse
 from django.http import HttpRequest
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
@@ -152,6 +153,16 @@ def fetch_media(request, filepath):
 		return FileResponse(file.doc_file)
 	else:
 		return HttpResponseForbidden()
+	
+def verify_fetch_media(request, filepath):
+	file = get_object_or_404(Shareable, doc_file=filepath)
+	if request.user.profile in file.shared_with.all() or request.user.profile == file.owner:
+		if file.verified:
+			return FileResponse(file.doc_file)
+		else:
+			return HttpResponse("File wasn't verified lol")
+	else:
+		return HttpResponseForbidden()
 
 class ShareDocument(AuthCreateView):
 	model = Shareable
@@ -165,6 +176,7 @@ class ShareDocument(AuthCreateView):
 	
 	def form_valid(self, form):
 		form.instance.owner = self.request.user.profile
+		form.instance.doc_hash = hashlib.sha256(form.cleaned_data['doc_file'].read()).hexdigest()
 		return super().form_valid(form)
 
 # noinspection PyMethodMayBeStatic
