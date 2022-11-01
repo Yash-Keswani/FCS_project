@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Search Locations</title>
+</head>
+<body>
+<form target="_self" method="post">
+    {% csrf_token %}
+    <select name="category" id = "id_category" required>
+        <option value="hospital">Hospital</option>
+        <option value="pharmacy">Pharmacy</option>
+        <option value="insurance">Insurance Firm</option>
+        <option value="doctor">Doctor</option>
+    </select>
+    <input type="text" id="id_entity_name" name="entity_name"/>
+    <button type="submit" value="submit">Submit</button>
+</form>
+{% if entries %}
+    {% for entry in entries %}
+        <li><a href="/medimode/{{ entry.role }}/{{ entry.profile.id }}">{{ entry.profile.full_name }} - {{ entry.profile.bio }}</a></li><br>
+    {% endfor %}
+{% endif %}
+</body>
+</html>

@@ -22,6 +22,7 @@ urlpatterns = [
 	
 	path('approve_users', views.ApproveUsers.as_view(), name='approve_users'),
 	path('remove_users', views.RemoveUsers.as_view(), name='remove_users'),
+	path('search', views.Search.as_view(), name='search'),
 	
 	path('login', views.Login.as_view(), name='login'),
 	path('myseed', views.OTPSeed.as_view(), name='seed'),

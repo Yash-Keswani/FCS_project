@@ -1,3 +1,5 @@
+import difflib
+
 from django.contrib.auth.views import LoginView
 from django.core.exceptions import ValidationError
 from django.db.models import Q
@@ -7,23 +9,22 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.urls import reverse_lazy
 from django.views import View
-from django.views.generic import UpdateView
 
-from medimode.models import Insurance, Hospital, Pharmacy, Doctor, Shareable, Ticket, Profile, Ticket_Shareable, User
-from medimode.views_base import AuthTemplateView, AuthDetailView, AuthListView, AuthCreateView
+from medimode.models import Insurance, Hospital, Pharmacy, Doctor, Shareable, Ticket, Profile, Ticket_Shareable
+from medimode.views_base import AuthTemplateView, AuthDetailView, AuthListView, AuthCreateView, AdminListView
 
-#>> FUNCTIONS <<#
+# >> FUNCTIONS << #
 def verifyOTP(request):
 	otp_given = request.POST.get("otp")
 	otp_actual = request.user.totp
 	return otp_given == otp_actual
 
-#>> PUBLIC VIEWS <<#
+# >> PUBLIC VIEWS << #
 class Login(LoginView):
 	next_page = reverse_lazy("medimode_index")
-	
-#>> ADMIN VIEWS <<#
-class ApproveUsers(AuthListView):
+
+# >> ADMIN VIEWS << #
+class ApproveUsers(AdminListView):
 	template_name = "medimode/approve_users.html"
 	model = Profile
 	
@@ -40,7 +41,7 @@ class ApproveUsers(AuthListView):
 		
 		return redirect(reverse('approve_users'))
 
-class RemoveUsers(AuthListView):
+class RemoveUsers(AdminListView):
 	template_name = "medimode/reject_users.html"
 	model = Profile
 	
@@ -56,8 +57,8 @@ class RemoveUsers(AuthListView):
 			profile.save()
 		
 		return redirect(reverse('remove_users'))
-	
-#>> LOGIN RESTRICTED VIEWS <<#
+
+# >> LOGIN RESTRICTED VIEWS << #
 class Home(AuthTemplateView):
 	template_name = "medimode/home.html"
 	
@@ -117,7 +118,7 @@ def fetch_media(request, filepath):
 		return FileResponse(file.doc_file)
 	else:
 		return HttpResponseForbidden()
-		
+
 class ShareDocument(AuthCreateView):
 	model = Shareable
 	fields = ['doc_file', 'filename', 'shared_with']
@@ -152,7 +153,8 @@ class IssueTicket(View):
 		
 		tkt_shareables = []
 		for _doc_file in request.FILES.getlist("doc_files"):
-			tkt_shareable = Ticket_Shareable(doc_file=_doc_file, filename=_doc_file.name, owner=request.user.profile, party=Ticket_Shareable.PARTY.ISSUER)
+			tkt_shareable = Ticket_Shareable(doc_file=_doc_file, filename=_doc_file.name, owner=request.user.profile,
+																			 party=Ticket_Shareable.PARTY.ISSUER)
 			tkt_shareable.save()
 			tkt_shareable.shared_with.add(_issued)
 			tkt_shareable.save()
@@ -181,7 +183,7 @@ class MyTickets(AuthListView):
 
 class TicketView(AuthDetailView):
 	template_name = "medimode/ticketDetail.html"
-
+	
 	def get_context_data(self, **kwargs):
 		return {"object": get_object_or_404(Ticket, self.request.GET.get("pk"))}
 	
@@ -190,5 +192,22 @@ class TicketView(AuthDetailView):
 		_req = request.POST.get("moneyreq")
 		
 		if _req and _money:
-			payer, paid = (1,2)
+			payer, paid = (1, 2)
+
+class Search(AuthTemplateView):
+	template_name = "medimode/search.html"
+	model_mapping = {"hospital": Hospital, "pharmacy": Pharmacy, "insurance": Insurance, "doctor": Doctor}
 	
+	def post(self, request):
+		category = self.model_mapping.get(request.POST.get("category"))
+		entity_name = request.POST.get("entity_name")
+		
+		all_objs = category.objects.all()
+		names_obj = {x.full_name: x.user for x in all_objs}
+		
+		entries_close = set([names_obj[x] for x in difflib.get_close_matches(entity_name, names_obj.keys(), n=10)])
+		entries_including = set([names_obj[x] for x in names_obj if entity_name in x])
+		
+		entries = list(entries_close | entries_including)
+		
+		return render(request, self.template_name, context={"entries": entries})
