@@ -14,7 +14,7 @@ from django.views import View
 from django.views.generic import CreateView, TemplateView
 
 from medimode.models import Insurance, Hospital, Pharmacy, Doctor, Shareable, Ticket, Profile, Ticket_Shareable, \
-	Organisation, User
+	Organisation, User, Patient, Document
 from medimode.views_base import AuthTemplateView, AuthDetailView, AuthListView, AuthCreateView, AdminListView
 
 # >> FUNCTIONS << #
@@ -54,7 +54,34 @@ class SignupOrg(TemplateView):
 		_user.save()
 		_model = tomake.objects.create(bio=_bio, user=_user, contact_number=_contact, image0=_image0, image1=_image1, location=_location)
 		_model.save()
-		return render(request, reverse('login'))
+		return redirect(reverse('login'))
+
+class SignupIndividual(TemplateView):
+	template_name = "medimode/signup/individual.html"
+	
+	def get(self, request):
+		return render(request, 'medimode/signup/individual.html',
+									{"form": modelform_factory(Organisation, exclude=[])})
+	
+	def post(self, request):
+		_post = self.request.POST
+		_files = self.request.FILES
+		_username = _post.get('username')
+		_password= _post.get('password')
+		_bio= _post.get('bio')
+		_poa = _files.get('proof_of_address')
+		_proof_of_address= Document.objects.create(doc_file=_poa, filename=_poa.name)
+		_poi= _files.get('proof_of_identity')
+		_proof_of_identity= Document.objects.create(doc_file=_poi, filename=_poi.name)
+		
+		_med_doc= _files.get('medical_documents')
+		_medical_documents = Document.objects.create(doc_file=_med_doc, filename=_med_doc.name)
+		
+		_user = User.objects.create_user(username=_username, first_name=_username, password=_password, role='Patient')
+		_user.save()
+		_model = Patient.objects.create(user=_user, bio=_bio, proof_of_address=_proof_of_address, proof_of_identity=_proof_of_identity, medical_info=_medical_documents)
+		_model.save()
+		return redirect(reverse('login'))
 	
 # >> ADMIN VIEWS << #
 class ApproveUsers(AdminListView):

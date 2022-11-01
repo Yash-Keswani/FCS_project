@@ -26,6 +26,7 @@ urlpatterns = [
 	
 	path('login', views.Login.as_view(), name='login'),
 	path('signup/org', views.SignupOrg.as_view(), name='signup_org'),
+	path('signup/individual', views.SignupIndividual.as_view(), name='signup_individual'),
 	
 	path('myseed', views.OTPSeed.as_view(), name='seed'),
 	path('my_tickets', views.MyTickets.as_view(), name='my_tickets'),
