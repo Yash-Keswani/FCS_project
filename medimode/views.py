@@ -49,7 +49,7 @@ class SignupOrg(TemplateView):
 		_location= _post.get('location')
 		
 		tomake = str_to_model(_post.get("model"))
-		_user = User.objects.create_user(username=_username, first_name=_username, password=_password)
+		_user = User.objects.create_user(username=_username, first_name=_username, password=_password, role=_post.get('model'))
 		_user.save()
 		_model = tomake.objects.create(bio=_bio, user=_user, contact_number=_contact, image0=_image0, image1=_image1, location=_location)
 		_model.save()
@@ -134,6 +134,9 @@ class Catalogue(AuthListView):
 
 class MyDocuments(AuthListView):
 	model = Shareable
+	
+	def get_queryset(self):
+		return Shareable.objects.filter(owner=self.request.user.profile) | Shareable.objects.filter(shared_with=self.request.user.profile)
 
 def delete_media(request, filepath):
 	file = get_object_or_404(Shareable, doc_file=filepath)
@@ -214,9 +217,7 @@ class MyTickets(AuthListView):
 
 class TicketView(AuthDetailView):
 	template_name = "medimode/ticketDetail.html"
-	
-	def get_context_data(self, **kwargs):
-		return {"object": get_object_or_404(Ticket, self.request.GET.get("pk"))}
+	model=Ticket
 	
 	def post(self, request):
 		_money = request.POST.get("money")

@@ -10,7 +10,7 @@
         {% for document in object_list %}
             <li>{{ document.filename }} -
                 <a href="/medimode/media/{{ document.doc_file.name }}">Fetch</a>
-                <a href="/medimode/delete_media/{{ document.doc_file.name }}">Delete</a>
+                <a href="/medimode/media/delete/{{ document.doc_file.name }}">Delete</a>
             </li>
         {% endfor %}
     </ul>

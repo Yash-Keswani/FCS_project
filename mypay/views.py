@@ -24,7 +24,7 @@ class Home(TemplateView):
 def transaction_success(request):
 	token = request.GET.get("token")
 	transaction_info = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
-	if transaction_info["status"] != "1":
+	if transaction_info["success"] != "1":
 		return HttpResponseBadRequest()
 	else:
 		return render(request, 'mypay/success.html')
@@ -32,7 +32,7 @@ def transaction_success(request):
 def transaction_failure(request):
 	token = request.GET.get("token")
 	transaction_info = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
-	if transaction_info["status"] != "-1":
+	if transaction_info["success"] != "-1":
 		return HttpResponseBadRequest()
 	else:
 		return render(request, 'mypay/failure.html')

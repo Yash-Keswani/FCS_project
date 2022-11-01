@@ -1,32 +1,37 @@
-<form action="/medimode/issue_ticket" method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    <tr>
-        <th><label for="id_doc_files">Uploads:</label></th>
-        <td>
-            <input type="file" name="doc_files" id="id_doc_files" multiple>
-        </td>
-        <th><label for="id_shareables">Shareables:</label></th>
-        <td>
-            <select name="shareables" id="id_shareables" multiple>
-                {% for shareable in shareables %}
-                    <option value="{{ shareable.pk }}">{{ shareable.filename }}</option>
-                {% endfor %}
-            </select>
-        </td>
-    </tr>
-    <tr>
-        <th><label for="id_description">Description:</label></th>
-        <td>
+<form target="_self" method="post" enctype="multipart/form-data">
+    <table>
+        {% csrf_token %}
+        <tr>
+            <th><label for="id_doc_files">Uploads:</label></th>
+            <td>
+                <input type="file" name="doc_files" id="id_doc_files" multiple>
+            </td>
+            <th><label for="id_shareables">Shareables:</label></th>
+            <td>
+                <select name="shareables" id="id_shareables" multiple>
+                    {% for shareable in shareables %}
+                        <option value="{{ shareable.pk }}">{{ shareable.filename }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <th><label for="id_description">Description:</label></th>
+            <td>
       <textarea name="description" cols="40" rows="10" maxlength="32000" required id="id_description">
 </textarea>
-        </td>
-    </tr>
-    <tr>
-        <th><label for="id_otp">OTP:</label></th>
-        <td>
-            <input type="number" name="otp" required id="id_otp"/>
-        </td>
-    </tr>
-    <input type="hidden" id="id_issued" name="issued" value="{{ issued.id }}"/>
-    <input type="submit" value="Submit">
+            </td>
+        </tr>
+        <tr>
+            <th><label for="id_otp">OTP:</label></th>
+            <td>
+                <input type="number" name="otp" required id="id_otp"/>
+            </td>
+        </tr>
+        <input type="hidden" id="id_issued_to" name="issued_to" value="{{ issued.id }}"/>
+        <tr>
+            <td><input type="submit" value="Submit"></td>
+        </tr>
+
+    </table>
 </form>
