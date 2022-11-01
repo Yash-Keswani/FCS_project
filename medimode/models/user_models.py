@@ -14,6 +14,7 @@ role_model_map = {}
 
 def gen_otpseed():
 	return base64.b32encode(secrets.token_bytes(10)).decode(encoding='utf-8')
+
 class User(AbstractUser):
 	class UserRoleChoices(TextChoices):
 		PATIENT = "patient"
@@ -25,26 +26,22 @@ class User(AbstractUser):
 	@property
 	def totp(self):
 		return mintotp.totp(self.OTP_seed)
-		
+	
 	role = models.TextField(choices=UserRoleChoices.choices, null=True)
 	OTP_seed = encrypt(models.TextField(default=gen_otpseed))
 	
 	@property
 	def profile(self):
-		match(self.role):
-			case self.UserRoleChoices.DOCTOR: return self.doctor
-			case self.UserRoleChoices.PATIENT: return self.patient
-			case self.UserRoleChoices.HOSPITAL: return self.hospital
-			case self.UserRoleChoices.PHARMACY: return self.pharmacy
-			case self.UserRoleChoices.INSURANCE: return self.insurance
-		return None
-	
+		urc = self.UserRoleChoices
+		mapping = {urc.DOCTOR: self.doctor, urc.PATIENT: self.patient, urc.HOSPITAL: self.hospital,
+							 urc.PHARMACY: self.pharmacy, urc.INSURANCE: self.insurance}
+		return mapping.get(self.role)
 
 class Profile(models.Model):
 	user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='%(class)s')
 	bio = models.TextField(max_length=500, blank=True)
 	approved = models.BooleanField(default=False)
-
+	
 	@property
 	def full_name(self):
 		return self.user.first_name + " " + self.user.last_name
@@ -57,7 +54,7 @@ class Individual(Profile):
 		super().delete()
 		self.proof_of_identity.delete()
 		self.proof_of_address.delete()
-		
+	
 	proof_of_identity = models.OneToOneField(Document, on_delete=models.RESTRICT, related_name="poi_%(class)s")
 	proof_of_address = models.OneToOneField(Document, on_delete=models.RESTRICT, related_name="poa_%(class)s")
 	
@@ -68,14 +65,14 @@ class Doctor(Individual):
 	def delete(self, using=None, keep_parents=False):
 		super().delete()
 		self.medical_license.delete()
-		
-	medical_license = models.OneToOneField(Document, on_delete=models.RESTRICT, related_name="owner_doctor")
 	
+	medical_license = models.OneToOneField(Document, on_delete=models.RESTRICT, related_name="owner_doctor")
+
 class Patient(Individual):
 	def delete(self, using=None, keep_parents=False):
 		super().delete()
 		self.medical_info.delete()
-		
+	
 	medical_info = models.OneToOneField(Document, on_delete=models.SET_NULL, related_name="owner_patient", null=True)
 
 class Organisation(Profile):
@@ -83,7 +80,7 @@ class Organisation(Profile):
 		super().delete()
 		self.image0.delete()
 		self.image1.delete()
-		
+	
 	contact_number = models.BigIntegerField(validators=[MinValueValidator(1000_0000), MaxValueValidator(99_9999_9999)])
 	# could be another model for image info with many-to-one relation
 	image0 = models.ImageField(upload_to='uploads/images/')  # upload with appropriate name?
@@ -92,7 +89,7 @@ class Organisation(Profile):
 	
 	class Meta:
 		abstract = True
-	
+
 class Hospital(Organisation):
 	pass
 
