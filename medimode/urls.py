@@ -47,4 +47,6 @@ urlpatterns = [
 	path('media/delete/<path:filepath>', views.delete_media, name='delete_media'),
 	path('media/verify/<path:filepath>', views.verify_fetch_media, name='verified_media'),
 	path('media/<path:filepath>', views.fetch_media, name='fetch_media'),
+
+	
 ]
