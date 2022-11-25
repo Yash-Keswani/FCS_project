@@ -1,0 +1,32 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OTP page</title>
+    
+</head>
+<body>
+     
+    <div class="OTP keypad">
+        <script src="{% static 'otp.js' %}"></script> 
+            <input id="tbInput" type="text" /> 
+            <div id="VirtualKey">
+                <input id="btn1" type="button" onclick="input(this);" />
+                <input id="btn2" type="button" onclick="input(this);" />
+                <input id="btn3" type="button" onclick="input(this);" />
+                <br />
+                <input id="btn4" type="button" onclick="input(this);" />
+                <input id="btn5" type="button" onclick="input(this);" />
+                <input id="btn6" type="button" onclick="input(this);" />
+                <br />
+                <input id="btn7" type="button" onclick="input(this);" />
+                <input id="btn8" type="button" onclick="input(this);" />
+                <input id="btn9" type="button" onclick="input(this);" />
+                <br />
+                <input id="btn0" type="button" onclick="input(this)" />
+                <input id="btnDel" type="button" value="Backspace" onclick="del();" />
+            </div>
+    </div>  
+</body>
+</html>

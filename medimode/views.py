@@ -74,7 +74,10 @@ class SignupIndividual(TemplateView):
 		_proof_of_identity= Document.objects.create(doc_file=_poi, filename=_poi.name)
 		
 		_med_doc= _files.get('medical_documents')
-		_medical_documents = Document.objects.create(doc_file=_med_doc, filename=_med_doc.name)
+		if _med_doc!=None:
+			_medical_documents = Document.objects.create(doc_file=_med_doc, filename=_med_doc.name)
+		else:
+			_medical_documents = None	
 		
 		_user = User.objects.create_user(username=_username, first_name=_username, password=_password, role='Patient')
 		_user.save()
@@ -264,6 +267,14 @@ class IssueTicket(View):
 class MyTickets(AuthListView):
 	def get_queryset(self):
 		return Ticket.objects.filter(Q(issued=self.request.user.profile) | Q(issuer=self.request.user.profile))
+
+class MyTicketsforBills(AuthListView):
+	template_name = "medimode/previousBills.html"
+
+	def get_queryset(self):
+		Temp=Ticket.objects.filter(Q(issuer=self.request.user.profile))
+		return [x.issued._meta.object_name == "Doctor" for x in Temp]
+		# return Temp
 
 class TicketView(AuthDetailView):
 	template_name = "medimode/ticketDetail.html"

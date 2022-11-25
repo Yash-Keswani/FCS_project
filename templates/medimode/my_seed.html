@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,5 +8,25 @@
 <body>
 <p>Your seed is: {{ user.OTP_seed }}</p>
 <p>Your current OTP should be {{ user.totp }}</p>
+<div class="OTP keypad">
+    <script src="{% static 'otp.js' %}"></script> 
+        <input id="keyInput" type="text" /> 
+        <div id="VirtualKeyboard">
+            <input type="button" value ="1" onclick="input(1);" />
+            <input type="button" value ="2" onclick="input(2);" />
+            <input type="button" value ="3" onclick="input(3);" />
+            <br />
+            <input type="button" value ="4" onclick="input(4);" />
+            <input type="button" value ="5" onclick="input(5);" />
+            <input type="button" value ="6" onclick="input(6);" />
+            <br />
+            <input type="button" value ="7" onclick="input(7);" />
+            <input type="button" value ="8" onclick="input(8);" />
+            <input type="button" value ="9" onclick="input(9);" />
+            <br />
+            <input  type="button" value ="0" onclick="input(0)" />
+            <input  type="button" value="Backspace" onclick="deleting_val();" />
+        </div>
+</div>  
 </body>
 </html>
