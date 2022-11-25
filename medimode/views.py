@@ -1,8 +1,7 @@
 import difflib
 import hashlib
 
-import bleach
-import magic
+from sanitation_tools import *
 from django.contrib.auth.views import LoginView
 from django.core.exceptions import ValidationError
 from django.db.models import Q
@@ -18,28 +17,6 @@ from django.views.generic import CreateView, TemplateView
 from medimode.models import Insurance, Hospital, Pharmacy, Doctor, Shareable, Ticket, Profile, Ticket_Shareable, \
 	Organisation, User, Patient, Document
 from medimode.views_base import AuthTemplateView, AuthDetailView, AuthListView, AuthCreateView, AdminListView
-
-# >> FUNCTIONS << #
-def verify_otp(request):
-	otp_given = request.POST.get("otp")
-	otp_actual = request.user.totp
-	if not otp_given == otp_actual:
-		raise ValidationError("Invalid OTP provided")
-
-def sanitise_doc(_doc_file):
-	filetype = magic.from_buffer(_doc_file.read(256)).lower()
-	accepted_types = ["pdf", "png", "jpeg"]
-	if not any(filetype.startswith(x) for x in accepted_types):
-		raise ValidationError("Invalid file provided")
-
-def sanitise_string(string):
-	if string is None:
-		return ValidationError("Parameters were removed from form")
-	else:
-		return bleach.clean(string)
-model_mapping = {"hospital": Hospital, "pharmacy": Pharmacy, "insurance": Insurance, "doctor": Doctor}
-def str_to_model(model_name):
-	return model_mapping.get(model_name)
 
 # >> PUBLIC VIEWS << #
 class Login(LoginView):
@@ -80,26 +57,18 @@ class SignupIndividual(TemplateView):
 		_files = self.request.FILES
 		
 		#  COLLECTION  #
-		_username = _post.get('username')
-		_password= _post.get('password')
-		_bio= _post.get('bio')
-		_poa = _files.get('proof_of_address')
-		_proof_of_address= Document.objects.create(doc_file=_poa, filename=_poa.name)
-		_poi= _files.get('proof_of_identity')
-		_proof_of_identity= Document.objects.create(doc_file=_poi, filename=_poi.name)
-		_med_doc= _files.get('medical_documents')
+		_username = get_clean(_post, 'username')
+		_password= get_clean(_post, 'password')
+		_bio= get_clean(_post, 'bio')
 		
-		#  SANITATION  #
+		_poa = get_document(_files, 'proof_of_address')
+		_poi = get_document(_files, 'proof_of_identity')
+		_med_doc= get_document_or_none(_files, 'medical_documents')
 		
-		
-		_medical_documents = None
-		if _med_doc is not None:
-			_medical_documents = Document.objects.create(doc_file=_med_doc, filename=_med_doc.name)
-		
+		#  COMMIT  #
 		_user = User.objects.create_user(username=_username, first_name=_username, password=_password, role='Patient')
-		_user.save()
-		_model = Patient.objects.create(user=_user, bio=_bio, proof_of_address=_proof_of_address, proof_of_identity=_proof_of_identity, medical_info=_medical_documents)
-		_model.save()
+		_model = Patient.objects.create(user=_user, bio=_bio, proof_of_address=_poa,
+																		proof_of_identity=_poi, medical_info=_med_doc)
 		return redirect(reverse('login'))
 	
 # >> ADMIN VIEWS << #
@@ -139,8 +108,6 @@ class RemoveUsers(AdminListView):
 
 # >> LOGIN RESTRICTED VIEWS << #
 class Home(AuthTemplateView):
-	
-
 	def get_context_data(self, **kwargs):
 		context = super().get_context_data(**kwargs)
 		context["test"] = "This value is useless"
@@ -311,8 +278,8 @@ class TicketView(AuthDetailView):
 	model=Ticket
 	
 	def post(self, request):
-		_money = request.POST.get("money")
-		_req = request.POST.get("moneyreq")
+		_money = get_clean(request.POST, "money")
+		_req = get_clean(request.POST, "moneyreq")
 		
 		if _req and _money:
 			payer, paid = (1, 2)
@@ -321,8 +288,8 @@ class Search(AuthTemplateView):
 	template_name = "medimode/search.html"
 	
 	def post(self, request):
-		category = str_to_model(request.POST.get("category"))
-		entity_name = request.POST.get("entity_name")
+		category = str_to_model(get_clean(request.POST, "category"))
+		entity_name = get_clean(request.POST, "entity_name")
 		
 		all_objs = category.objects.all()
 		names_obj = {x.full_name: x.user for x in all_objs}
