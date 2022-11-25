@@ -4,7 +4,7 @@ from django.views.generic import TemplateView, DetailView, ListView, CreateView
 
 class ApprovedMixin(UserPassesTestMixin):
 	def test_func(self):
-		return self.request.user.profile.approved
+		return self.request.user.is_staff or self.request.user.profile.approved
 	
 class AdminMixin(UserPassesTestMixin):
 	def test_func(self):

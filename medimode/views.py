@@ -139,12 +139,30 @@ class RemoveUsers(AdminListView):
 
 # >> LOGIN RESTRICTED VIEWS << #
 class Home(AuthTemplateView):
-	template_name = "medimode/home.html"
 	
+
 	def get_context_data(self, **kwargs):
 		context = super().get_context_data(**kwargs)
 		context["test"] = "This value is useless"
 		return context
+
+	def get_template_names(self):
+		role = self.request.user.is_staff
+		if role:
+			return redirect(reverse('approve_users'))
+		role = self.request.user.role
+		if role == "patient":
+			return "medimode/home.html"
+		elif role == "doctor":
+			return "medimode/home.html"
+		elif role == "pharmacy":
+			return "medimode/home.html"
+		elif role == "hospital":
+			return "medimode/home.html"
+		elif role == "insurance":
+			return "medimode/home.html"
+		else:
+			return "medimode/home.html"
 
 class OTPSeed(AuthTemplateView):
 	template_name = "medimode/my_seed.html"
