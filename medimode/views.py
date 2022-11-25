@@ -272,9 +272,12 @@ class MyTicketsforBills(AuthListView):
 	template_name = "medimode/previousBills.html"
 
 	def get_queryset(self):
-		Temp=Ticket.objects.filter(Q(issuer=self.request.user.profile))
-		return [x.issued._meta.object_name == "Doctor" for x in Temp]
-		# return Temp
+		Temp = Ticket.objects.filter(Q(issuer=self.request.user.profile))
+		cat = self.request.GET.get("issued_to")
+		if cat not in ["doctor", "pharmacy", "insurance", "hospital"]:
+			return Temp
+		else:
+			return [x for x in Temp if x.issued.user.role == cat]
 
 class TicketView(AuthDetailView):
 	template_name = "medimode/ticketDetail.html"
