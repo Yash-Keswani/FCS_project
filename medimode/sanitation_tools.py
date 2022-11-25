@@ -24,6 +24,12 @@ def get_clean(_post, attr):
 	else:
 		return bleach.clean(value)
 
+def get_clean_int(_post, attr):
+	value = _post.get(attr)
+	if value is None or not value.isnumeric():
+		raise ValidationError("Invalid integer provided")
+	return int(value)
+
 def get_clean_or_none(_post, attr):
 	value = _post.get(attr)
 	if value is not None:
@@ -49,6 +55,8 @@ def get_document_or_none(_files, attr):
 	
 model_mapping = {"hospital": Hospital, "pharmacy": Pharmacy, "insurance": Insurance, "doctor": Doctor, "patient": Patient}
 def str_to_model(model_name):
+	if model_name is None:
+		raise ValidationError("Model name not provided")
 	mname = model_mapping.get(model_name)
 	if mname is None:
 		raise ValidationError("Invalid category of profile")

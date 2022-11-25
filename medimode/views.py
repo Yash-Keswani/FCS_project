@@ -14,7 +14,6 @@ from django.http import HttpRequest
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.urls import reverse_lazy
-from django.views import View
 from django.views.generic import TemplateView
 
 from medimode.models import Insurance, Hospital, Pharmacy, Doctor, Shareable, Ticket, Profile, Ticket_Shareable, \
@@ -31,7 +30,8 @@ class Login(LoginView):
 class SignupOrg(TemplateView):
 	template_name = "medimode/signup/org.html"
 	
-	def get(self, request):
+	@staticmethod
+	def get(request, **kwargs):
 		return render(request, 'medimode/signup/org.html',
 									{"form": modelform_factory(Organisation, exclude=[])})
 	
@@ -54,7 +54,8 @@ class SignupOrg(TemplateView):
 class SignupIndividual(TemplateView):
 	template_name = "medimode/signup/individual.html"
 	
-	def get(self, request):
+	@staticmethod
+	def get(request, **kwargs):
 		return render(request, 'medimode/signup/individual.html',
 									{"form": modelform_factory(Organisation, exclude=[])})
 	
@@ -85,7 +86,8 @@ class ApproveUsers(AdminListView):
 	def get_queryset(self):
 		return Profile.objects.filter(approved=False)
 	
-	def post(self, request):
+	@staticmethod
+	def post(request):
 		approved_users = request.POST.get("approved_users")
 		approved_profiles = [Profile.objects.get(pk=x) for x in approved_users]
 		
@@ -96,7 +98,8 @@ class ApproveUsers(AdminListView):
 		return redirect(reverse('approve_users'))
 
 class Documents(AdminView):
-	def post(self, request):
+	@staticmethod
+	def post(request):
 		_pid = int(get_clean(json.loads(request.body), "profile_id"))
 		_role = Profile.objects.get(pk=_pid).user.role
 		prf = str_to_model(_role).objects.select_related('user__profile').get(pk=_pid)
@@ -127,7 +130,8 @@ class RemoveUsers(AdminListView):
 	def get_queryset(self):
 		return Profile.objects.filter(approved=True)
 	
-	def post(self, request):
+	@staticmethod
+	def post(request):
 		approved_users = request.POST.get("approved_users")
 		approved_profiles = [Profile.objects.get(pk=x) for x in approved_users]
 		
@@ -139,7 +143,7 @@ class RemoveUsers(AdminListView):
 
 # >> LOGIN RESTRICTED VIEWS << #
 class Home(AuthView):
-	def get(self,request):
+	def get(self, request):
 		role = self.request.user.is_staff
 		if role:
 			return redirect(reverse('approve_users'))
@@ -245,31 +249,35 @@ class ShareDocument(AuthCreateView):
 @method_decorator(ratelimit(key='user', rate='20/m', method='POST', block=True), name='post')
 @method_decorator(ratelimit(key='user', rate='100/h', method='POST', block=True), name='post')
 class IssueTicket(AuthView):
-	def get(self, request: HttpRequest):
+	@staticmethod
+	def get(request: HttpRequest):
 		ctx = {
 			'shareables': Shareable.objects.filter(owner=request.user.profile),
 		}
-		issued_to = get_clean(request.GET, 'issued_to')
-		if issued_to.isnumeric():
-			ctx["issued_to"] = Profile.objects.get(issued_to=issued_to)
+		issued_to = get_clean_or_none(request.GET, 'issued_to')
+		if issued_to:
+			ctx["issued"] = issued_to
 		return render(request, template_name="medimode/ticket_form.html", context=ctx)
 	
-	def post(self, request: HttpRequest):
+	@staticmethod
+	def post(request: HttpRequest):
 		#  COLLECT  #
 		_issuer = request.user.profile
-		_issued = Profile.objects.get(pk=int(request.POST.get("issued_to")))
-		_description = request.POST.get("description")
-		_otp = request.POST.get("otp")
+		_issued = Profile.objects.get(get_clean_int(request.POST, "issued_to"))
+		_description = get_clean(request.POST, "description")
+		_otp = get_clean(request.POST, "otp")
 		
 		tkt_shareables = []
 		
 		#  SANITISE  #
-		for _doc_file in request.FILES.getlist("doc_files"):
-			sanitise_doc(_doc_file)
+		if request.FILES.getlist("doc_files") is None:
+			raise ValidationError("parameter not in form")
+		
+		cleaned_docs = [sanitise_doc(doc) for doc in request.FILES.getlist("doc_files")]
 		verify_otp(request)
 		
 		#  COMMIT  #
-		for _doc_file in request.FILES.getlist("doc_files"):
+		for _doc_file in cleaned_docs:
 			tkt_shareable = Ticket_Shareable(doc_file=_doc_file, filename=_doc_file.name, owner=request.user.profile,
 																			 party=Ticket_Shareable.PARTY.ISSUER)
 			tkt_shareable.save()
@@ -303,7 +311,7 @@ class MyTicketsforBills(AuthListView):
 
 	def get_queryset(self):
 		Temp = Ticket.objects.filter(Q(issuer=self.request.user.profile))
-		cat = self.request.GET.get("issued_to")
+		cat = get_clean(self.request.GET, "issued_to")
 		if cat not in ["doctor", "pharmacy", "insurance", "hospital"]:
 			return Temp
 		else:
@@ -313,7 +321,8 @@ class TicketView(AuthDetailView):
 	template_name = "medimode/ticketDetail.html"
 	model=Ticket
 	
-	def post(self, request):
+	@staticmethod
+	def post(request):
 		_money = get_clean(request.POST, "money")
 		_req = get_clean(request.POST, "moneyreq")
 		
@@ -324,7 +333,7 @@ class Search(AuthTemplateView):
 	template_name = "medimode/search.html"
 	
 	def post(self, request):
-		category = str_to_model(get_clean(request.POST, "category"))
+		category = str_to_model(request.POST.get("category"))
 		entity_name = get_clean(request.POST, "entity_name")
 		
 		all_objs = category.objects.all()
