@@ -54,6 +54,7 @@ class Individual(Profile):
 		super().delete()
 		self.proof_of_identity.delete()
 		self.proof_of_address.delete()
+		# TODO: delete shareable documents uploaded by user,
 	
 	proof_of_identity = models.OneToOneField(Document, on_delete=models.RESTRICT, related_name="poi_%(class)s")
 	proof_of_address = models.OneToOneField(Document, on_delete=models.RESTRICT, related_name="poa_%(class)s")

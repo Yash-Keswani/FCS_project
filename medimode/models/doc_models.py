@@ -10,8 +10,9 @@ class Document(models.Model):
 	def verified(self):
 		with open(self.doc_file.path, mode='rb') as fd:
 			return sha256(fd.read()).hexdigest() == self.doc_hash
+		# TODO: use blockchain here
 	
-	# MIGHT become a field instead of a model
+	# might become a field instead of a model
 	# Delete document when class using the document is deleted
 	# Document validation can be performed
 	doc_file = models.FileField(upload_to='uploads/documents')

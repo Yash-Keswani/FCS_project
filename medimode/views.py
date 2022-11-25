@@ -1,6 +1,7 @@
 import difflib
 import hashlib
 
+import magic
 from django.contrib.auth.views import LoginView
 from django.core.exceptions import ValidationError
 from django.db.models import Q
@@ -51,9 +52,7 @@ class SignupOrg(TemplateView):
 		
 		tomake = str_to_model(_post.get("model"))
 		_user = User.objects.create_user(username=_username, first_name=_username, password=_password, role=_post.get('model'))
-		_user.save()
 		_model = tomake.objects.create(bio=_bio, user=_user, contact_number=_contact, image0=_image0, image1=_image1, location=_location)
-		_model.save()
 		return redirect(reverse('login'))
 
 class SignupIndividual(TemplateView):
@@ -206,7 +205,12 @@ class ShareDocument(AuthCreateView):
 		form.instance.doc_hash = hashlib.sha256(form.cleaned_data['doc_file'].read()).hexdigest()
 		return super().form_valid(form)
 
-# noinspection PyMethodMayBeStatic
+def validate_doc(_doc_file):
+	# filetype = magic.from_descriptor(_doc_file).lower()
+	# accepted_types = ["pdf", "png", "jpeg"]
+	# return any(filetype.startswith(x) for x in accepted_types)
+	return True
+
 class IssueTicket(View):
 	def get(self, request: HttpRequest):
 		ctx = {
@@ -216,15 +220,22 @@ class IssueTicket(View):
 		return render(request, template_name="medimode/ticket_form.html", context=ctx)
 	
 	def post(self, request: HttpRequest):
+		#  COLLECT  #
 		_issuer = request.user.profile
-		_issued = Profile.objects.get(pk=request.POST.get("issued"))
+		_issued = Profile.objects.get(pk=int(request.POST.get("issued_to")))
 		_description = request.POST.get("description")
 		_otp = request.POST.get("otp")
 		
+		tkt_shareables = []
+		
+		#  SANITISE  #
+		for _doc_file in request.FILES.getlist("doc_files"):
+			if not validate_doc(_doc_file):
+				raise ValidationError("Invalid Filetype provided")
 		if not verifyOTP(request):
 			raise ValidationError("Invalid OTP provided")
 		
-		tkt_shareables = []
+		#  COMMIT  #
 		for _doc_file in request.FILES.getlist("doc_files"):
 			tkt_shareable = Ticket_Shareable(doc_file=_doc_file, filename=_doc_file.name, owner=request.user.profile,
 																			 party=Ticket_Shareable.PARTY.ISSUER)

@@ -15,11 +15,6 @@ stripe.api_key = os.getenv('stripe_api_key')
 # Create your views here.
 class Home(TemplateView):
 	template_name = "mypay/index.html"
-	
-	def get_context_data(self, **kwargs):
-		context = super().get_context_data(**kwargs)
-		context["test"] = "This value is useless"
-		return context
 
 def transaction_success(request):
 	token = request.GET.get("token")
@@ -46,8 +41,8 @@ class MakePayment(View):
 		transaction_info['success'] = "-1"
 		jwt_failure = jwt.encode(transaction_info, settings.SECRET_KEY, algorithm='HS256')
 		
-		product = stripe.Product.create(name="idk payment")
-		price = stripe.Price.create(product=product['id'], unit_amount=transaction_info["price"]+"00", currency="inr")
+		product = stripe.Product.create(name="idk payment", stripe_account=transaction_info["payee"])
+		price = stripe.Price.create(product=product['id'], unit_amount=str(transaction_info["price"]*100), currency="inr", stripe_account=transaction_info["payee"])
 		checkout_session = stripe.checkout.Session.create(
 			line_items=[
 				{
@@ -58,6 +53,7 @@ class MakePayment(View):
 			mode='payment',
 			success_url=request.build_absolute_uri(reverse('success') + "?token=" + jwt_success),
 			cancel_url=request.build_absolute_uri(reverse('failure') + "?token=" + jwt_failure),
+			stripe_account=transaction_info["payee"]
 		)
 	
 		return redirect(to=checkout_session.url)
