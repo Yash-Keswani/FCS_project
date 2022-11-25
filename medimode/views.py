@@ -30,17 +30,18 @@ class SignupOrg(TemplateView):
 									{"form": modelform_factory(Organisation, exclude=[])})
 	
 	def post(self, request):
+
 		_post = self.request.POST
 		_files = self.request.FILES
-		_username = _post.get('username')
-		_password= _post.get('password')
-		_bio= _post.get('bio')
-		_contact= _post.get('contact_number')
-		_image0= _files.get('image0')
-		_image1= _files.get('image1')
-		_location= _post.get('location')
-		
-		tomake = str_to_model(_post.get("model"))
+		_username = get_clean(_post, 'username')
+		_password= get_clean(_post, 'password')
+		_bio= get_clean(_post, 'bio')
+		_contact= get_clean(_post, 'contact_number')
+		_image0= get_document(_files, 'image0')
+		_image1= get_document(_files, 'image1')
+		_location= get_clean(_post, 'location')
+
+		tomake = str_to_model(get_get_clean(_post,"model"))
 		_user = User.objects.create_user(username=_username, first_name=_username, password=_password, role=_post.get('model'))
 		_model = tomake.objects.create(bio=_bio, user=_user, contact_number=_contact, image0=_image0, image1=_image1, location=_location)
 		return redirect(reverse('login'))
@@ -81,6 +82,14 @@ class ApproveUsers(AdminListView):
 	
 	def post(self, request):
 		approved_users = request.POST.get("approved_users")
+
+		newList=[]
+		for i in approved_users:
+			if str(i).isnumeric():
+				newList.append(i)
+			else:
+				return ValidationError("Aprroved user key error")
+
 		approved_profiles = [Profile.objects.get(pk=x) for x in approved_users]
 		
 		for profile in approved_profiles:
@@ -98,6 +107,13 @@ class RemoveUsers(AdminListView):
 	
 	def post(self, request):
 		approved_users = request.POST.get("approved_users")
+		newList=[]
+		for i in approved_users:
+			if str(i).isnumeric():
+				newList.append(i)
+			else:
+				return ValidationError("Aprroved user key error")
+
 		approved_profiles = [Profile.objects.get(pk=x) for x in approved_users]
 		
 		for profile in approved_profiles:
@@ -218,19 +234,33 @@ class IssueTicket(View):
 	def post(self, request: HttpRequest):
 		#  COLLECT  #
 		_issuer = request.user.profile
-		_issued = Profile.objects.get(pk=int(request.POST.get("issued_to")))
-		_description = request.POST.get("description")
+		val=0
+		if str(request.POST.get("issued_to")).isnumeric():
+			val=int(request.POST.get("issued_to"))
+		else:
+			return ValidationError("Issued to val recieved not an integer")
+
+		_issued = Profile.objects.get(pk=val)
+
+		_description = get_clean(request.POST, "description")
+		
 		_otp = request.POST.get("otp")
 		
 		tkt_shareables = []
+
+		if str(_otp).isnumeric():
+			_otp = int(_otp)
+		else:
+			return ValidationError("OTP not an integer")
 		
 		#  SANITISE  #
+		listPostSanitisation=[]
 		for _doc_file in request.FILES.getlist("doc_files"):
-			sanitise_doc(_doc_file)
+			listPostSanitisation.append(sanitise_doc(_doc_file))
 		verify_otp(request)
 		
 		#  COMMIT  #
-		for _doc_file in request.FILES.getlist("doc_files"):
+		for _doc_file in listPostSanitisation:
 			tkt_shareable = Ticket_Shareable(doc_file=_doc_file, filename=_doc_file.name, owner=request.user.profile,
 																			 party=Ticket_Shareable.PARTY.ISSUER)
 			tkt_shareable.save()
