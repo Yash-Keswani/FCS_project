@@ -132,17 +132,18 @@ class Home(AuthView):
 			return redirect(reverse('approve_users'))
 		role = self.request.user.role
 		if role == "patient":
-			return "medimode/home.html"
+			return render(request,'medimode/home.html')
 		elif role == "doctor":
-			return "medimode/home.html"
+			return render(request,'medimode/home.html')
 		elif role == "pharmacy":
-			return "medimode/home.html"
+			return render(request,'medimode/home.html')
 		elif role == "hospital":
-			return "medimode/home.html"
+			return render(request,'medimode/home.html')
 		elif role == "insurance":
-			return "medimode/home.html"
+			return render(request,'medimode/home.html')
 		else:
-			return "medimode/home.html"
+			return render(request,'medimode/home.html')
+		
 
 class OTPSeed(AuthTemplateView):
 	template_name = "medimode/my_seed.html"

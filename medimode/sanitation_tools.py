@@ -1,6 +1,6 @@
 import bleach
 from django.core.exceptions import ValidationError
-from magic import magic
+import magic
 
 from medimode.models import Document, Hospital, Pharmacy, Insurance, Doctor
 
