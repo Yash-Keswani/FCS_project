@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Your Tickets</title>
+</head>
+<body>
+    {% for ticket in object_list %}
+        <p>Issuer Name: {{ ticket.issuer.full_name }}</p>
+        <p>Issued to: {{ ticket.issued }}</p>
+        <p>Description: {{ ticket.description }}</p>
+    {% endfor %}
+</body>
+</html>
