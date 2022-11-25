@@ -15,7 +15,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.urls import reverse_lazy
 from django.views import View
-from django.views.generic import CreateView, TemplateView
+from django.views.generic import TemplateView
 
 from medimode.models import Insurance, Hospital, Pharmacy, Doctor, Shareable, Ticket, Profile, Ticket_Shareable, \
 	Organisation, User, Patient, Document
@@ -41,12 +41,12 @@ class SignupOrg(TemplateView):
 		_username = _post.get('username')
 		_password= _post.get('password')
 		_bio= get_clean(_post, 'bio')
-		_contact= _post.get('contact_number')
-		_image0= _files.get('image0')
-		_image1= _files.get('image1')
-		_location= _post.get('location')
-		
-		tomake = str_to_model(_post.get("model"))
+		_contact= get_clean(_post, 'contact_number')
+		_image0= get_document(_files, 'image0')
+		_image1= get_document(_files, 'image1')
+		_location= get_clean(_post, 'location')
+
+		tomake = str_to_model(get_clean(_post, "model"))
 		_user = User.objects.create_user(username=_username, first_name=_username, password=_password, role=_post.get('model'))
 		_model = tomake.objects.create(bio=_bio, user=_user, contact_number=_contact, image0=_image0, image1=_image1, location=_location)
 		return redirect(reverse('login'))
