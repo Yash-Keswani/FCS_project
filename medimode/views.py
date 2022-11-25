@@ -1,6 +1,7 @@
 import difflib
 import hashlib
 
+import bleach
 import magic
 from django.contrib.auth.views import LoginView
 from django.core.exceptions import ValidationError
@@ -19,11 +20,23 @@ from medimode.models import Insurance, Hospital, Pharmacy, Doctor, Shareable, Ti
 from medimode.views_base import AuthTemplateView, AuthDetailView, AuthListView, AuthCreateView, AdminListView
 
 # >> FUNCTIONS << #
-def verifyOTP(request):
+def verify_otp(request):
 	otp_given = request.POST.get("otp")
 	otp_actual = request.user.totp
-	return otp_given == otp_actual
-	
+	if not otp_given == otp_actual:
+		raise ValidationError("Invalid OTP provided")
+
+def sanitise_doc(_doc_file):
+	filetype = magic.from_buffer(_doc_file.read(256)).lower()
+	accepted_types = ["pdf", "png", "jpeg"]
+	if not any(filetype.startswith(x) for x in accepted_types):
+		raise ValidationError("Invalid file provided")
+
+def sanitise_string(string):
+	if string is None:
+		return ValidationError("Parameters were removed from form")
+	else:
+		return bleach.clean(string)
 model_mapping = {"hospital": Hospital, "pharmacy": Pharmacy, "insurance": Insurance, "doctor": Doctor}
 def str_to_model(model_name):
 	return model_mapping.get(model_name)
@@ -65,6 +78,8 @@ class SignupIndividual(TemplateView):
 	def post(self, request):
 		_post = self.request.POST
 		_files = self.request.FILES
+		
+		#  COLLECTION  #
 		_username = _post.get('username')
 		_password= _post.get('password')
 		_bio= _post.get('bio')
@@ -72,12 +87,14 @@ class SignupIndividual(TemplateView):
 		_proof_of_address= Document.objects.create(doc_file=_poa, filename=_poa.name)
 		_poi= _files.get('proof_of_identity')
 		_proof_of_identity= Document.objects.create(doc_file=_poi, filename=_poi.name)
-		
 		_med_doc= _files.get('medical_documents')
-		if _med_doc!=None:
+		
+		#  SANITATION  #
+		
+		
+		_medical_documents = None
+		if _med_doc is not None:
 			_medical_documents = Document.objects.create(doc_file=_med_doc, filename=_med_doc.name)
-		else:
-			_medical_documents = None	
 		
 		_user = User.objects.create_user(username=_username, first_name=_username, password=_password, role='Patient')
 		_user.save()
@@ -208,12 +225,6 @@ class ShareDocument(AuthCreateView):
 		form.instance.doc_hash = hashlib.sha256(form.cleaned_data['doc_file'].read()).hexdigest()
 		return super().form_valid(form)
 
-def validate_doc(_doc_file):
-	# filetype = magic.from_descriptor(_doc_file).lower()
-	# accepted_types = ["pdf", "png", "jpeg"]
-	# return any(filetype.startswith(x) for x in accepted_types)
-	return True
-
 class IssueTicket(View):
 	def get(self, request: HttpRequest):
 		ctx = {
@@ -233,10 +244,8 @@ class IssueTicket(View):
 		
 		#  SANITISE  #
 		for _doc_file in request.FILES.getlist("doc_files"):
-			if not validate_doc(_doc_file):
-				raise ValidationError("Invalid Filetype provided")
-		if not verifyOTP(request):
-			raise ValidationError("Invalid OTP provided")
+			sanitise_doc(_doc_file)
+		verify_otp(request)
 		
 		#  COMMIT  #
 		for _doc_file in request.FILES.getlist("doc_files"):
