@@ -1,7 +1,7 @@
 import difflib
 import hashlib
 
-from sanitation_tools import *
+from medimode.sanitation_tools import *
 from django.contrib.auth.views import LoginView
 from django.core.exceptions import ValidationError
 from django.db.models import Q
