@@ -15,31 +15,36 @@
 <p>Your username and password didn't match. Please try again.</p>
 {% endif %}
 
+<form class="form" method="post" action="{% url 'login' %}">
+  <div class="form-content">
+    <h3 class="form-title">Sign In</h3>
 {% if next %}
     {% if user.is_authenticated %}
-    <p>Your account doesn't have access to this page. To proceed,
+    <p >Your account doesn't have access to this page. To proceed,
     please login with an account that has access.</p>
     
     {% else %}
-    <p>Please login to see this page.</p>
+    <p class="text-center">Please login to see this page.</p>
     {% endif %}
 {% endif %}
-<form class="form" method="post" action="{% url 'login' %}">
-    <div class="form-content">
-        <h3 class="form-title">Sign In</h3>
+        </div>
+        <div class="text-center">
+          <a href="/medimode/signup/org"><button class="link-primary"></button>Sign UP as organisation</button></a>
+          <br>
+          <a href="/medimode/signup/individual"><button class="link-primary"></button>Sign UP as individual</button></a>
         </div>
 {% csrf_token %}
 <table>
 <tr>
     <div class="form-group mt-3">
         <td>{{ form.username.label_tag }}</td>
-        <td>{{ form.username }}</td>
+        <td >{{ form.username }}</td>
     </div>
 </tr>
 <tr>
     <div class="form-group mt-3">
         <td>{{ form.password.label_tag }}</td>
-        <td>{{ form.password }}</td>
+        <td >{{ form.password }}</td>
     </div>
 </tr>
 </table>
@@ -50,7 +55,7 @@
 </form>
 
 {# Assumes you set up the password_reset view in your URLconf #}
-<h4 class="text-center mt-2"><a>Lost password?</a></h4>
+<!-- <h4 class="text-center mt-2"><a>Lost password?</a></h4> -->
 
 
 {% endblock %}
@@ -59,44 +64,44 @@
 
 </div>
 
-<div class="Main-form">
-    <form class="form">
+<!-- <div class="Main-form"> -->
+    <!-- <form class="form"> -->
     <!-- {/* <form> */} -->
-      <div class="form-content">
-        <h3 class="form-title">Sign In</h3>
-        <div class="text-center">
-          Not registered yet?{" "}
-          <button class="link-primary" onClick={changeAuthMode}>
-            Sign Up
-          </button>
-        </div>
-        <div class="form-group mt-3">
-          <label>Email address</label>
-          <input
-            type="email"
-            class="form-control mt-1"
-            placeholder="Enter email"
-          />
-        </div>
-        <div class="form-group mt-3">
-          <label>Password</label>
-          <input
-            type="password"
-            class="form-control mt-1"
-            placeholder="Enter password"
-          />
-        </div>
-        <div class="d-grid mt-3">
-          <button type="submit" class="btn btn-primary">
-            Submit
-          </button>
-        </div>
-        <p class="text-center mt-2">
-            <a href="#">Forgot password?</a>
-        </p>
-      </div>
-    </form>
-  </div>
+      <!-- <div class="form-content"> -->
+        <!-- <h3 class="form-title">Sign In</h3> -->
+        <!-- <div class="text-center"> -->
+          <!-- Not registered yet?{" "} -->
+          <!-- <button class="link-primary" onClick={changeAuthMode}> -->
+            <!-- Sign Up -->
+          <!-- </button> -->
+        <!-- </div> -->
+        <!-- <div class="form-group mt-3"> -->
+          <!-- <label>Email address</label> -->
+          <!-- <input -->
+            <!-- type="email" -->
+            <!-- class="form-control mt-1" -->
+            <!-- placeholder="Enter email" -->
+          <!-- /> -->
+        <!-- </div> -->
+        <!-- <div class="form-group mt-3"> -->
+          <!-- <label>Password</label> -->
+          <!-- <input -->
+            <!-- type="password" -->
+            <!-- class="form-control mt-1" -->
+            <!-- placeholder="Enter password" -->
+          <!-- /> -->
+        <!-- </div> -->
+        <!-- <div class="d-grid mt-3"> -->
+          <!-- <button type="submit" class="btn btn-primary"> -->
+            <!-- Submit -->
+          <!-- </button> -->
+        <!-- </div> -->
+        <!-- <p class="text-center mt-2"> -->
+            <!-- <a href="#">Forgot password?</a> -->
+        <!-- </p> -->
+      <!-- </div> -->
+    <!-- </form> -->
+  <!-- </div> -->
 
 
 
