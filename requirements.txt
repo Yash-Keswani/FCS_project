@@ -4,3 +4,4 @@ PyJWT~=2.6.0
 mintotp~=0.3.0
 python-magic~=0.4.27
 bleach~=5.0.1
+django-ratelimit~=3.0.1

@@ -28,7 +28,9 @@
                 <input type="number" name="otp" required id="id_otp"/>
             </td>
         </tr>
+        {% if issued %}
         <input type="hidden" id="id_issued_to" name="issued_to" value="{{ issued.id }}"/>
+        {% endif %}
         <tr>
             <td><input type="submit" value="Submit"></td>
         </tr>

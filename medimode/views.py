@@ -1,12 +1,15 @@
 import difflib
 import hashlib
+import json
+
+from django.utils.decorators import method_decorator
+from ratelimit.decorators import ratelimit
 
 from medimode.sanitation_tools import *
 from django.contrib.auth.views import LoginView
-from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.forms import modelform_factory
-from django.http import Http404, FileResponse, HttpResponseForbidden, HttpResponse
+from django.http import Http404, FileResponse, HttpResponseForbidden, HttpResponse, JsonResponse
 from django.http import HttpRequest
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
@@ -16,9 +19,12 @@ from django.views.generic import CreateView, TemplateView
 
 from medimode.models import Insurance, Hospital, Pharmacy, Doctor, Shareable, Ticket, Profile, Ticket_Shareable, \
 	Organisation, User, Patient, Document
-from medimode.views_base import AuthTemplateView, AuthDetailView, AuthListView, AuthCreateView, AdminListView,AuthView
+from medimode.views_base import AuthTemplateView, AuthDetailView, AuthListView, AuthCreateView, AdminListView, AuthView, \
+	AdminView
 
 # >> PUBLIC VIEWS << #
+@method_decorator(ratelimit(key='post:username', rate='20/m', method='POST', block=True), name='post')
+@method_decorator(ratelimit(key='post:username', rate='100/h', method='POST', block=True), name='post')
 class Login(LoginView):
 	next_page = reverse_lazy("medimode_index")
 	
@@ -34,7 +40,7 @@ class SignupOrg(TemplateView):
 		_files = self.request.FILES
 		_username = _post.get('username')
 		_password= _post.get('password')
-		_bio= _post.get('bio')
+		_bio= get_clean(_post, 'bio')
 		_contact= _post.get('contact_number')
 		_image0= _files.get('image0')
 		_image1= _files.get('image1')
@@ -89,6 +95,31 @@ class ApproveUsers(AdminListView):
 		
 		return redirect(reverse('approve_users'))
 
+class Documents(AdminView):
+	def post(self, request):
+		_pid = int(get_clean(json.loads(request.body), "profile_id"))
+		_role = Profile.objects.get(pk=_pid).user.role
+		prf = str_to_model(_role).objects.select_related('user__profile').get(pk=_pid)
+	
+		docs = []
+		if _role == "doctor":
+			docs.extend([("Proof of Identity", prf.proof_of_identity),
+									 ("Proof of Address", prf.proof_of_address),
+									 ("Medical License", prf.medical_license)])
+		elif _role == "patient":
+			docs.extend([("Proof of Identity", prf.proof_of_identity),
+									 ("Proof of Address", prf.proof_of_address)])
+			if prf.medical_info is not None:
+				docs.append(("Medical Info", prf.medical_info))
+		else:
+			docs.extend([("Image 0", prf.image0), ("Image 1", prf.image1)])
+		
+		tosend = []
+		for doc in docs:
+			tosend.append({"key": doc[0], "filepath": doc[1].doc_file.name, "filename": doc[1].filename})
+		return JsonResponse(tosend, safe=False)
+		
+
 class RemoveUsers(AdminListView):
 	template_name = "medimode/reject_users.html"
 	model = Profile
@@ -108,8 +139,6 @@ class RemoveUsers(AdminListView):
 
 # >> LOGIN RESTRICTED VIEWS << #
 class Home(AuthView):
-	
-
 	def get(self,request):
 		role = self.request.user.is_staff
 		if role:
@@ -176,15 +205,21 @@ def delete_media(request, filepath):
 		return HttpResponseForbidden()
 
 def fetch_media(request, filepath):
+	if request.user.is_staff:
+		return FileResponse(get_object_or_404(Document, doc_file=filepath).doc_file)
 	file = get_object_or_404(Shareable, doc_file=filepath)
-	if request.user.profile in file.shared_with.all() or request.user.profile == file.owner:
+	if (request.user.profile in file.shared_with.all() or
+			request.user.profile == file.owner):
 		return FileResponse(file.doc_file)
 	else:
 		return HttpResponseForbidden()
 	
 def verify_fetch_media(request, filepath):
+	if request.user.is_staff:
+		return FileResponse(get_object_or_404(Document, doc_file=filepath).doc_file)
 	file = get_object_or_404(Shareable, doc_file=filepath)
-	if request.user.profile in file.shared_with.all() or request.user.profile == file.owner:
+	if (request.user.profile in file.shared_with.all() or
+			request.user.profile == file.owner):
 		if file.verified:
 			return FileResponse(file.doc_file)
 		else:
@@ -207,12 +242,16 @@ class ShareDocument(AuthCreateView):
 		form.instance.doc_hash = hashlib.sha256(form.cleaned_data['doc_file'].read()).hexdigest()
 		return super().form_valid(form)
 
-class IssueTicket(View):
+@method_decorator(ratelimit(key='user', rate='20/m', method='POST', block=True), name='post')
+@method_decorator(ratelimit(key='user', rate='100/h', method='POST', block=True), name='post')
+class IssueTicket(AuthView):
 	def get(self, request: HttpRequest):
 		ctx = {
 			'shareables': Shareable.objects.filter(owner=request.user.profile),
-			'issued': Profile.objects.get(pk=int(request.GET.get('issued_to')))
 		}
+		issued_to = get_clean(request.GET, 'issued_to')
+		if issued_to.isnumeric():
+			ctx["issued_to"] = Profile.objects.get(issued_to=issued_to)
 		return render(request, template_name="medimode/ticket_form.html", context=ctx)
 	
 	def post(self, request: HttpRequest):

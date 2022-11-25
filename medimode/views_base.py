@@ -27,4 +27,6 @@ class AuthCreateView(LoginRequiredMixin, ApprovedMixin, CreateView):
 
 class AuthView(LoginRequiredMixin, ApprovedMixin, View):
 	login_url = reverse_lazy('login')
-	
+
+class AdminView(LoginRequiredMixin, AdminMixin, View):
+	login_url = reverse_lazy('login')

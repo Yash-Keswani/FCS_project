@@ -1,8 +1,8 @@
 import bleach
 from django.core.exceptions import ValidationError
-from magic import magic
+import magic
 
-from medimode.models import Document, Hospital, Pharmacy, Insurance, Doctor
+from medimode.models import Document, Hospital, Pharmacy, Insurance, Doctor, Patient
 
 def verify_otp(request):
 	otp_given = request.POST.get("otp")
@@ -19,8 +19,8 @@ def sanitise_doc(_doc_file):
 
 def get_clean(_post, attr):
 	value = _post.get(attr)
-	if attr is None:
-		return ValidationError("Parameters were removed from form")
+	if value is None:
+		raise ValidationError("Parameters were removed from form")
 	else:
 		return bleach.clean(value)
 
@@ -47,11 +47,12 @@ def get_document_or_none(_files, attr):
 		fl = sanitise_doc(_doc_file=value)
 		return Document.objects.create(doc_file=fl, filename=fl.name)
 	
-model_mapping = {"hospital": Hospital, "pharmacy": Pharmacy, "insurance": Insurance, "doctor": Doctor}
+model_mapping = {"hospital": Hospital, "pharmacy": Pharmacy, "insurance": Insurance, "doctor": Doctor, "patient": Patient}
 def str_to_model(model_name):
 	mname = model_mapping.get(model_name)
 	if mname is None:
 		raise ValidationError("Invalid category of profile")
+	return mname
 
 def str_to_model_or_none(model_name):
 	return model_mapping.get(model_name)
