@@ -1,6 +1,6 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
-from django.views.generic import TemplateView, DetailView, ListView, CreateView
+from django.views.generic import TemplateView, DetailView, ListView, CreateView, View
 
 class ApprovedMixin(UserPassesTestMixin):
 	def test_func(self):
@@ -24,3 +24,7 @@ class AdminListView(LoginRequiredMixin, AdminMixin, ListView):
 	
 class AuthCreateView(LoginRequiredMixin, ApprovedMixin, CreateView):
 	login_url = reverse_lazy('login')
+
+class AuthView(LoginRequiredMixin, ApprovedMixin, View):
+	login_url = reverse_lazy('login')
+	
