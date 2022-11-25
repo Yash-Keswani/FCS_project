@@ -16,7 +16,7 @@ from django.views.generic import CreateView, TemplateView
 
 from medimode.models import Insurance, Hospital, Pharmacy, Doctor, Shareable, Ticket, Profile, Ticket_Shareable, \
 	Organisation, User, Patient, Document
-from medimode.views_base import AuthTemplateView, AuthDetailView, AuthListView, AuthCreateView, AdminListView
+from medimode.views_base import AuthTemplateView, AuthDetailView, AuthListView, AuthCreateView, AdminListView,AuthView
 
 # >> PUBLIC VIEWS << #
 class Login(LoginView):
@@ -107,13 +107,10 @@ class RemoveUsers(AdminListView):
 		return redirect(reverse('remove_users'))
 
 # >> LOGIN RESTRICTED VIEWS << #
-class Home(AuthTemplateView):
-	def get_context_data(self, **kwargs):
-		context = super().get_context_data(**kwargs)
-		context["test"] = "This value is useless"
-		return context
+class Home(AuthView):
+	
 
-	def get_template_names(self):
+	def get(self,request):
 		role = self.request.user.is_staff
 		if role:
 			return redirect(reverse('approve_users'))
