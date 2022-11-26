@@ -86,7 +86,9 @@ class Organisation(Profile):
 	# could be another model for image info with many-to-one relation
 	image0 = models.ImageField(upload_to='uploads/images/')  # upload with appropriate name?
 	image1 = models.ImageField(upload_to='uploads/images/')
-	location = models.TextField(max_length=200)  # this is lazy but I couldn't care less
+	location_state = models.TextField(max_length=200, default="Delhi")
+	location_city = models.TextField(max_length=200, default="New Delhi")
+	location = models.TextField(max_length=200)
 	
 	class Meta:
 		abstract = True

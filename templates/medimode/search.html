@@ -13,6 +13,18 @@
         <option value="insurance">Insurance Firm</option>
         <option value="doctor">Doctor</option>
     </select>
+		<th>Location:</th>
+		<td>
+			<select id="id_state" name="state" onchange="load_state()">
+				{% for state in state_dict.keys %}
+					<option value="{{ state }}">{{ state }}</option>
+				{% endfor %}
+			</select>
+		</td>
+		<td>
+		<select id="id_city" name="city">
+		</select>
+		</td>
     <input type="text" id="id_entity_name" name="entity_name"/>
     <button type="submit" value="submit">Submit</button>
 </form>
@@ -21,5 +33,16 @@
         <li><a href="/medimode/{{ entry.role }}/{{ entry.profile.id }}">{{ entry.profile.full_name }} - {{ entry.profile.bio }}</a></li><br>
     {% endfor %}
 {% endif %}
+<script>
+		// TODO: preserve values after form submit, optional tick for location or name filtering or both
+    const state_json = JSON.parse(`{{ state_json | safe }}`)
+    function load_state(){
+        const state =	document.getElementById("id_state").value
+        document.getElementById("id_city").innerHTML = ""
+        state_json[state].forEach((city)=>{
+            document.getElementById("id_city").options.add(new Option(city, city))
+        })
+    }
+</script>
 </body>
 </html>

@@ -59,19 +59,38 @@
                 <input type="file" name="image1" accept="image/*" required id="id_image1">
             </td>
         </tr>
-
-        <tr>
-            <th><label for="id_location">Location:</label></th>
-            <td>
-                <textarea name="location" cols="40" rows="10" maxlength="200" required id="id_location"> </textarea>
-            </td>
-        </tr>
+	    <tr>
+	    <th>Location:</th>
+		    <td>
+			    <select id="id_state" name="state" onchange="load_state()">
+				    {% for state in state_dict.keys %}
+					    <option value="{{ state }}">{{ state }}</option>
+				    {% endfor %}
+			    </select>
+		    </td>
+	    <td>
+			    <select id="id_city" name="city">
+			    </select>
+		    </td>
+	    <td>
+		    <textarea id="id_location" name="location">
+		    </textarea>
+	    </td>
+	    </tr>
         <tr>
             <td><input type="submit" value="submit"/></td>
         </tr>
     </table>
 </form>
-</body>
-</html>
+<script>
+		const state_json = JSON.parse(`{{ state_json | safe }}`)
+	function load_state(){
+			const state =	document.getElementById("id_state").value
+      document.getElementById("id_city").innerHTML = ""
+      state_json[state].forEach((city)=>{
+          document.getElementById("id_city").options.add(new Option(city, city))
+      })
+	}
+</script>
 </body>
 </html>

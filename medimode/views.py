@@ -32,23 +32,28 @@ class SignupOrg(TemplateView):
 	
 	@staticmethod
 	def get(request, **kwargs):
+		with open("medimode/models/cities.json") as fl:
+			state_text = fl.read()
 		return render(request, 'medimode/signup/org.html',
-									{"form": modelform_factory(Organisation, exclude=[])})
+									{"form": modelform_factory(Organisation, exclude=[]),
+									 "state_json": state_text, "state_dict": json.loads(state_text)})
 	
 	def post(self, request):
 		_post = self.request.POST
 		_files = self.request.FILES
-		_username = _post.get('username')
-		_password= _post.get('password')
+		_username = get_clean(_post, 'username')
+		_password= get_clean(_post, 'password')
 		_bio= get_clean(_post, 'bio')
 		_contact= get_clean(_post, 'contact_number')
-		_image0= get_document(_files, 'image0')
-		_image1= get_document(_files, 'image1')
+		_image0= _files.get('image0')
+		_image1= _files.get('image1')
+		_location_state= get_clean(_post, 'state')
+		_location_city= get_clean(_post, 'city')
 		_location= get_clean(_post, 'location')
 
 		tomake = str_to_model(get_clean(_post, "model"))
 		_user = User.objects.create_user(username=_username, first_name=_username, password=_password, role=_post.get('model'))
-		_model = tomake.objects.create(bio=_bio, user=_user, contact_number=_contact, image0=_image0, image1=_image1, location=_location)
+		_model = tomake.objects.create(bio=_bio, user=_user, contact_number=_contact, image0=_image0, image1=_image1, location_state=_location_state, location_city=_location_city, location=_location)
 		return redirect(reverse('login'))
 
 class SignupIndividual(TemplateView):
@@ -88,8 +93,10 @@ class ApproveUsers(AdminListView):
 	
 	@staticmethod
 	def post(request):
-		approved_users = request.POST.get("approved_users")
-		approved_profiles = [Profile.objects.get(pk=x) for x in approved_users]
+		approved_users = request.POST.getlist("approved_users")
+		if approved_users is None:
+			raise ValidationError()
+		approved_profiles = [get_object_or_404(Profile, pk=int(x)) for x in approved_users]
 		
 		for profile in approved_profiles:
 			profile.approved = True
@@ -100,9 +107,9 @@ class ApproveUsers(AdminListView):
 class Documents(AdminView):
 	@staticmethod
 	def post(request):
-		_pid = int(get_clean(json.loads(request.body), "profile_id"))
-		_role = Profile.objects.get(pk=_pid).user.role
-		prf = str_to_model(_role).objects.select_related('user__profile').get(pk=_pid)
+		_pid = get_clean_int(json.loads(request.body), "profile_id")
+		_role = get_object_or_404(Profile, pk=_pid).user.role
+		prf = get_object_or_404(str_to_model(_role).objects.select_related('user__profile'), pk=_pid)
 	
 		docs = []
 		if _role == "doctor":
@@ -115,7 +122,7 @@ class Documents(AdminView):
 			if prf.medical_info is not None:
 				docs.append(("Medical Info", prf.medical_info))
 		else:
-			docs.extend([("Image 0", prf.image0), ("Image 1", prf.image1)])
+			docs=[]  # ([("Image 0", prf.image0), ("Image 1", prf.image1)])
 		
 		tosend = []
 		for doc in docs:
@@ -133,7 +140,7 @@ class RemoveUsers(AdminListView):
 	@staticmethod
 	def post(request):
 		approved_users = request.POST.get("approved_users")
-		approved_profiles = [Profile.objects.get(pk=x) for x in approved_users]
+		approved_profiles = [Profile.objects.get_object_or_404(pk=x) for x in approved_users]
 		
 		for profile in approved_profiles:
 			profile.approved = False
@@ -263,7 +270,7 @@ class IssueTicket(AuthView):
 	def post(request: HttpRequest):
 		#  COLLECT  #
 		_issuer = request.user.profile
-		_issued = Profile.objects.get(get_clean_int(request.POST, "issued_to"))
+		_issued = Profile.objects.get_object_or_404(get_clean_int(request.POST, "issued_to"))
 		_description = get_clean(request.POST, "description")
 		_otp = get_clean(request.POST, "otp")
 		
@@ -332,11 +339,21 @@ class TicketView(AuthDetailView):
 class Search(AuthTemplateView):
 	template_name = "medimode/search.html"
 	
+	def get_context_data(self, **kwargs):
+		ctx = super().get_context_data(**kwargs)
+		with open("medimode/models/cities.json") as fl:
+			state_text = fl.read()
+		ctx["state_json"] = state_text
+		ctx["state_dict"] = json.loads(state_text)
+		return ctx
+	
 	def post(self, request):
 		category = str_to_model(request.POST.get("category"))
 		entity_name = get_clean(request.POST, "entity_name")
+		location_state = get_clean(request.POST, "state")
+		location_city = get_clean(request.POST, "city")
 		
-		all_objs = category.objects.all()
+		all_objs = category.objects.filter(Q(location_state=location_state) & Q(location_city=location_city))
 		names_obj = {x.full_name: x.user for x in all_objs}
 		
 		entries_close = set([names_obj[x] for x in difflib.get_close_matches(entity_name, names_obj.keys(), n=10)])
