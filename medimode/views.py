@@ -48,7 +48,7 @@ class SignupOrg(TemplateView):
 		_username = get_clean(_post, 'username')
 		_password= get_clean(_post, 'password')
 		_bio= get_clean(_post, 'bio')
-		_contact= get_clean(_post, 'contact_number')
+		_contact= get_clean_int(_post, 'contact_number')
 		
 		_image0= sanitise_doc(_files.get('image0'))
 		_image1= sanitise_doc(_files.get('image1'))
