@@ -7,8 +7,9 @@
     <link href="{% static 'home.css' %}" rel="stylesheet" />
 </head>
 <body>
-<h1>{{ object.full_name }}</h1>
-<p>Contact Us at: {{ object.contact_number }}</p>
-<p>About Us: {{ object.bio }}</p>
+<h1>{{ object.full_name | safe}}</h1>
+<p>Contact Us at: {{ object.contact_number | safe}}</p>
+<p>About Us: {{ object.bio | safe}}</p>
+<a href="/medimode/issue_ticket?issued_to={{ object.pk }}">Request Ticket</a>
 </body>
 </html>

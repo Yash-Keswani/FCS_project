@@ -10,7 +10,7 @@ from medimode.sanitation_tools import sanitise_numeric, get_clean_int, str_to_mo
 from medimode.views_base import AdminListView, AdminView
 
 class ApproveUsers(AdminListView):
-	template_name = "medimode/approve_users.html"
+	template_name = "medimode/admin/approve_users.html"
 	model = Profile
 	
 	def get_queryset(self):
@@ -31,7 +31,7 @@ class ApproveUsers(AdminListView):
 		return redirect(reverse('approve_users'))
 
 class RemoveUsers(AdminListView):
-	template_name = "medimode/reject_users.html"
+	template_name = "medimode/admin/reject_users.html"
 	model = Profile
 	
 	def get_queryset(self):

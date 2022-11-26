@@ -27,22 +27,22 @@
 			<td>
 				<input type="number" name="otp" required id="id_otp"/>
 			</td>
-		</tr>
-		<tr>
-		<th>Issued To:</th>
-		<td>
 			<input type="hidden" id="id_ticket_id" name="ticket_id" value="{{ ticket_id }}"/>
-			{% if issued %}
-				<input type="hidden" id="id_issued_to" name="issued_to" value="{{ issued }}"/>
-			{% else %}
-				<select type="hidden" id="id_issued_to" name="issued_to">
-					{% for profile in targets %}
-						<option value="{{ profile.id }}">{{ profile.full_name }}</option>
-					{% endfor %}
-				</select>
-			{% endif %}
-		</td>
 		</tr>
+		{% if issued %}
+			<input type="hidden" id="id_issued_to" name="issued_to" value="{{ issued }}"/>
+		{% else %}
+			<tr>
+				<th>Issued To:</th>
+				<td>
+					<select type="hidden" id="id_issued_to" name="issued_to">
+						{% for profile in targets %}
+							<option value="{{ profile.id }}">{{ profile.full_name }}</option>
+						{% endfor %}
+					</select>
+				</td>
+			</tr>
+		{% endif %}
 		<tr>
 			<td><input type="submit" value="Submit"></td>
 		</tr>

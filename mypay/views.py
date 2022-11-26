@@ -9,6 +9,8 @@ import stripe
 import jwt
 
 from FCS import settings
+from medimode.models import Transaction
+from mypay.models import Receipt
 
 stripe.api_key = os.getenv('stripe_api_key')
 
@@ -19,9 +21,16 @@ class Home(TemplateView):
 def transaction_success(request):
 	token = request.GET.get("token")
 	transaction_info = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
-	if transaction_info["success"] != "1":
+	t_i = transaction_info
+	if (transaction_info["success"] != "1" or
+			Receipt.objects.filter(transaction_id=transaction_info["t_id"]).first() is not None):
 		return HttpResponseBadRequest()
 	else:
+		Receipt.objects.create(transaction_id=t_i["t_id"], payer_acct=t_i["payer"], payee_acct=t_i["payee"],
+													 status=Receipt.ReceiptStatusChoices.SUCCESS, amount=t_i["price"])
+		trn = Transaction.objects.get(id=t_i["t_id"])
+		trn.completed = True
+		trn.save()
 		return render(request, 'mypay/success.html')
 
 def transaction_failure(request):
@@ -40,6 +49,9 @@ class MakePayment(View):
 		jwt_success = jwt.encode(transaction_info, settings.SECRET_KEY, algorithm='HS256')
 		transaction_info['success'] = "-1"
 		jwt_failure = jwt.encode(transaction_info, settings.SECRET_KEY, algorithm='HS256')
+		
+		if Receipt.objects.filter(transaction_id=transaction_info["t_id"]).first() is not None:
+			return HttpResponseBadRequest("Transaction already finished")
 		
 		product = stripe.Product.create(name="idk payment", stripe_account=transaction_info["payee"])
 		price = stripe.Price.create(product=product['id'], unit_amount=str(transaction_info["price"]*100), currency="inr", stripe_account=transaction_info["payee"])

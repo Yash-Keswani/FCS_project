@@ -1,23 +1,33 @@
-from django.http import Http404
+import difflib
+import json
+
+from django.core.exceptions import ValidationError
+from django.db.models import Q
+from django.http import Http404, JsonResponse
 
 from medimode.models import Insurance, Doctor, Pharmacy, Hospital
-from medimode.sanitation_tools import str_to_model
+from medimode.modules.accounts.views import state_text
+from medimode.sanitation_tools import str_to_model, get_clean
 from medimode.views_base import AuthDetailView, AuthListView, AuthTemplateView
 
 class InsuranceView(AuthDetailView):
+	template_name = 'medimode/catalogue/insurance_detail.html'
 	model = Insurance
 
 class DoctorView(AuthDetailView):
+	template_name = 'medimode/catalogue/doctor_detail.html'
 	model = Doctor
 
 class PharmacyView(AuthDetailView):
+	template_name = 'medimode/catalogue/pharmacy_detail.html'
 	model = Pharmacy
 
 class HospitalView(AuthDetailView):
+	template_name = 'medimode/catalogue/hospital_detail.html'
 	model = Hospital
 
 class Catalogue(AuthListView):
-	template_name = "medimode/catalogue_list.html"
+	template_name = "medimode/catalogue/catalogue_list.html"
 	
 	def get_queryset(self):
 		cat = str_to_model(self.kwargs['category'])
@@ -35,7 +45,7 @@ class Catalogue(AuthListView):
 		return ctx
 
 class Search(AuthTemplateView):
-	template_name = "medimode/search.html"
+	template_name = "medimode/catalogue/search.html"
 	
 	def get_context_data(self, **kwargs):
 		ctx = super().get_context_data(**kwargs)

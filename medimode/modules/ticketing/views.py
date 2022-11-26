@@ -1,7 +1,7 @@
 import jwt
 from django.core.exceptions import ValidationError
 from django.db.models import Q
-from django.http import HttpRequest
+from django.http import HttpRequest, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
@@ -13,11 +13,12 @@ from medimode.sanitation_tools import get_clean, get_clean_int, sanitise_doc, ge
 from medimode.views_base import AuthListView, AuthDetailView, AuthView
 
 class MyTickets(AuthListView):
+	template_name = "medimode/ticketing/ticket_list.html"
 	def get_queryset(self):
 		return Ticket.objects.filter(Q(issued=self.request.user.profile) | Q(issuer=self.request.user.profile))
 
 class MyTicketsforBills(AuthListView):
-	template_name = "medimode/previousBills.html"
+	template_name = "medimode/ticketing/previousBills.html"
 	
 	def get_queryset(self):
 		Temp = Ticket.objects.filter(Q(issuer=self.request.user.profile))
@@ -28,7 +29,7 @@ class MyTicketsforBills(AuthListView):
 			return [x for x in Temp if x.issued.user.role == cat]
 
 class TicketView(AuthDetailView):
-	template_name = "medimode/ticketDetail.html"
+	template_name = "medimode/ticketing/ticketDetail.html"
 	model = Ticket
 	
 	@staticmethod
@@ -88,7 +89,7 @@ class TicketView(AuthDetailView):
 		
 		tkt.shareables.add(*shareables)
 		tkt.save()
-		return render(request, "medimode/ticketDetail.html")
+		return render(request, "medimode/ticketing/ticketDetail.html")
 
 @method_decorator(ratelimit(key='user', rate='20/m', method='POST', block=True), name='post')
 @method_decorator(ratelimit(key='user', rate='100/h', method='POST', block=True), name='post')
@@ -102,7 +103,7 @@ class IssueTicket(AuthView):
 		issued_to = get_clean_or_none(request.GET, 'issued_to')
 		if issued_to:
 			ctx["issued"] = issued_to
-		return render(request, template_name="medimode/ticket_form.html", context=ctx)
+		return render(request, template_name="medimode/ticketing/ticket_form.html", context=ctx)
 	
 	def post(self, request: HttpRequest):
 		#  COLLECT  #
@@ -143,13 +144,16 @@ class IssueTicket(AuthView):
 		tkt.shareables.add(*tkt_shareables)
 		tkt.save()
 		
-		return redirect(to=reverse('issue_ticket'))
+		return redirect(to=reverse('my_tickets'))
 
 
 class MakePayment(AuthView):
 	def get(self, request, pk):
 		trns = get_object_or_404(Transaction, pk=pk)
+		if trns.completed:
+			return HttpResponseBadRequest("Transaction is already completed")
 		transaction_info = {
+			"t_id": trns.id,
 			"payer": trns.sender.user.stripe_acct,
 			"payee": trns.receiver.user.stripe_acct,
 			"price": trns.amount,

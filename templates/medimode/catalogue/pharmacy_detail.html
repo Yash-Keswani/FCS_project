@@ -3,12 +3,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <title>Pharmacy Information</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
-    <title>Insurance Firm Information</title>
 </head>
 <body>
-<h2 class="text-center">{{ object.full_name }}</h2>
-<p>About Us: {{ object.bio }}</p>
+<h2 class="text-center">{{ object.full_name | safe}}</h2>
+<p>Contact Us at: {{ object.contact_number | safe}}</p>
+<p>About Us: {{ object.bio | safe}}</p>
 <a href="/medimode/issue_ticket?issued_to={{ object.pk }}">Request Ticket</a>
 </body>
 </html>

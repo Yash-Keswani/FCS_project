@@ -1,4 +1,3 @@
-# >> PUBLIC VIEWS << #
 import json
 import stripe
 from django.contrib.auth import logout
@@ -41,11 +40,11 @@ class MyStripe(AuthView):
 		return redirect(response["url"])
 
 class SignupOrg(TemplateView):
-	template_name = "medimode/signup/org.html"
+	template_name = "medimode/_accounts/org.html"
 	
 	@staticmethod
 	def get(request, **kwargs):
-		return render(request, 'medimode/signup/org.html',
+		return render(request, 'medimode/_accounts/org.html',
 									{"form": modelform_factory(Organisation, exclude=[]),
 									 "state_json": state_text, "state_dict": json.loads(state_text)})
 	
@@ -57,8 +56,8 @@ class SignupOrg(TemplateView):
 		_bio = get_clean(_post, 'bio')
 		_contact = get_clean_int(_post, 'contact_number')
 		
-		_image0 = get_document(_files, 'image0', request.user)
-		_image1 = get_document(_files, 'image1', request.user)
+		_image0 = get_document(_files, 'image0')
+		_image1 = get_document(_files, 'image1')
 		
 		_location_state = get_clean(_post, 'state')
 		_location_city = get_clean(_post, 'city')
@@ -66,9 +65,10 @@ class SignupOrg(TemplateView):
 		
 		tomake = str_to_model(get_clean(_post, "model"))
 		
-		acct = stripe.Account.create(type="custom", capabilities={
+		acct = stripe.Account.create(type="custom", business_type="company", capabilities={
 			"transfers": {"requested": True},
-			"card_payments": {"requested": True}})
+			"card_payments": {"requested": True},
+			"legacy_payments": {"requested": True}}, company={"name": _username})
 		_user = User.objects.create_user(username=_username, first_name=_username, password=_password,
 																		 role=_post.get('model'), stripe_acct=acct["id"])
 		_model = tomake.objects.create(bio=_bio, user=_user, contact_number=_contact, image0=_image0, image1=_image1,
@@ -76,11 +76,11 @@ class SignupOrg(TemplateView):
 		return redirect(reverse('login'))
 
 class SignupIndividual(TemplateView):
-	template_name = "medimode/signup/individual.html"
+	template_name = "medimode/_accounts/individual.html"
 	
 	@staticmethod
 	def get(request, **kwargs):
-		return render(request, 'medimode/signup/individual.html',
+		return render(request, 'medimode/_accounts/individual.html',
 									{"form": modelform_factory(Patient, exclude=[])})
 	
 	def post(self, request):
@@ -107,11 +107,11 @@ class SignupIndividual(TemplateView):
 		return redirect(reverse('login'))
 
 class SignupDoctor(TemplateView):
-	template_name = "medimode/signup/doctor.html"
+	template_name = "medimode/_accounts/doctor.html"
 	
 	@staticmethod
 	def get(request, **kwargs):
-		return render(request, 'medimode/signup/doctor.html',
+		return render(request, 'medimode/_accounts/doctor.html',
 									{"form": modelform_factory(Doctor, exclude=[])})
 	
 	def post(self, request):
@@ -127,13 +127,16 @@ class SignupDoctor(TemplateView):
 		_poi = get_document(_files, 'proof_of_identity')
 		_med_doc = get_document(_files, 'medical_license')
 		
-		#  COMMIT  #
-		_user = User.objects.create_user(username=_username, first_name=_username, password=_password, role='doctor')
+		acct = stripe.Account.create(type="custom", capabilities={
+			"transfers": {"requested": True},
+			"card_payments": {"requested": True}})
+		_user = User.objects.create_user(username=_username, first_name=_username, password=_password, role='doctor', stripe_acct=acct["id"])
 		_model = Doctor.objects.create(user=_user, bio=_bio, proof_of_address=_poa,
 																	 proof_of_identity=_poi, medical_license=_med_doc)
 		return redirect(reverse('login'))
 
 class ProfileView(AuthDetailView):
+	template_name = "medimode/_accounts/profile_detail.html"
 	model = Profile
 	
 	def get_object(self, queryset=None):
@@ -163,4 +166,4 @@ class ProfileView(AuthDetailView):
 		return context
 
 class OTPSeed(AuthTemplateView):
-	template_name = "medimode/my_seed.html"
+	template_name = "medimode/_accounts/my_seed.html"
