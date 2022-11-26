@@ -31,8 +31,6 @@ class SignupOrg(TemplateView):
 	
 	@staticmethod
 	def get(request, **kwargs):
-		with open("medimode/models/cities.json") as _fl:
-			state_text = _fl.read()
 		return render(request, 'medimode/signup/org.html',
 									{"form": modelform_factory(Organisation, exclude=[]),
 									 "state_json": state_text, "state_dict": json.loads(state_text)})
@@ -114,9 +112,6 @@ class SignupDoctor(TemplateView):
 																		proof_of_identity=_poi, medical_license=_med_doc)
 		return redirect(reverse('login'))
 	
-
-
-
 # >> ADMIN VIEWS << #
 class ApproveUsers(AdminListView):
 	template_name = "medimode/approve_users.html"
