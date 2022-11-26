@@ -4,7 +4,7 @@ import bleach
 from django.core.exceptions import ValidationError
 import magic
 
-from medimode.models import Document, Hospital, Pharmacy, Insurance, Doctor, Patient
+from medimode.models import Document, Hospital, Pharmacy, Insurance, Doctor, Patient, Shareable
 
 with open("medimode/models/cities.json") as fl:
 	states_dict = json.load(fl)

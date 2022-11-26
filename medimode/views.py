@@ -12,7 +12,7 @@ from medimode.sanitation_tools import *
 from django.contrib.auth.views import LoginView
 from django.db.models import Q
 from django.forms import modelform_factory
-from django.http import Http404, FileResponse, HttpResponseForbidden, HttpResponse, JsonResponse
+from django.http import Http404, FileResponse, HttpResponseForbidden, HttpResponse, JsonResponse, HttpResponseBadRequest
 from django.http import HttpRequest
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
@@ -67,8 +67,8 @@ class SignupOrg(TemplateView):
 		_bio= get_clean(_post, 'bio')
 		_contact= get_clean_int(_post, 'contact_number')
 		
-		_image0= get_document(_files, 'image0')
-		_image1= get_document(_files, 'image1')
+		_image0= get_document(_files, 'image0', request.user)
+		_image1= get_document(_files, 'image1', request.user)
 		
 		_location_state= get_clean(_post, 'state')
 		_location_city= get_clean(_post, 'city')
@@ -246,7 +246,7 @@ class ProfileView(AuthDetailView):
 	def get_object(self, queryset=None):
 		return self.request.user.profile
 	
-	def get_context_data(self,**kwargs):
+	def get_context_data(self, **kwargs):
 		context = super().get_context_data()
 		context['role'] = self.request.user.role
 
@@ -269,6 +269,28 @@ class ProfileView(AuthDetailView):
 		context['docs']=docs
 		return context
 
+class ProfileFileView(AuthView):
+	def get(self, request, filepath):
+		role = request.user.role
+		prf=str_to_model(role).objects.get(user=self.request.user)
+		
+		docs = []
+		if role == "doctor":
+			docs.extend(prf.proof_of_identity, prf.proof_of_address, prf.medical_license)
+		elif role == "patient":
+			docs.extend(prf.proof_of_identity, prf.proof_of_address)
+			if prf.medical_info is not None:
+				docs.append(prf.medical_info)
+		else:
+			docs.extend([prf.image0, prf.image1])
+		
+		for doc in docs:
+			if filepath == doc.doc_file.name:
+				if not doc.verified:
+					return HttpResponseBadRequest("The file is not verified")
+				return FileResponse(doc.doc_file)
+		
+		return HttpResponseForbidden("You don't have access to this file")
 
 class PharmacyView(AuthDetailView):
 	model = Pharmacy
