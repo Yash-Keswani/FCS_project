@@ -181,6 +181,7 @@ class Documents(AdminView):
 				docs.append(("Medical Info", prf.medical_info))
 		else:
 			docs = []  # ([("Image 0", prf.image0), ("Image 1", prf.image1)])
+			# TODO: Image 0 and Image 1 fetching while admin approval
 		
 		tosend = []
 		for doc in docs:
