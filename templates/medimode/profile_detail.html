@@ -10,33 +10,17 @@
 <h2 class="text-center">{{ object.full_name }}</h2>
 <p>About Us: {{ object.bio }}</p>
     <div>
-    <button type="button" onclick ="fetch_documents()" >Fetch Documents</button>
+    <p>My Documents</p>
     <div>
-
-        <div id="id_documents">
-
-        </div>
-        <script>
-            function fetch_documents(){
-                const user_id = '{{ user.id }}';
-                fetch("/medimode/user_documents", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                            'X-CSRFToken': '{{ csrf_token }}'
-                    },
-                    redirect: 'manual',
-                    body: JSON.stringify({"profile_id": user_id, "csrf_token": '{{ csrf_token }}'})
-                }).then((response) => response.json()).then((data) => {
-                let toput = ""
-                data.forEach((doc) => {
-                    toput += doc["key"]+": <a target='_blank' href=/medimode/media/verify/"+doc["filepath"]+">"+doc["filename"]+"</a><br/>"
-                })
-                document.getElementById("id_documents").innerHTML=toput
-                    })
-            }
-        </script>
-        
+    
+    <div>
+        {% for document in docs %}
+        <li>
+            <a href="/medimode/media/verify/{{ document.1.doc_file.name }}">{{ document.0 }}</a>
+        </li>
+        {% endfor %}
+    </div>
+ 
     
 </body>
 </html>
