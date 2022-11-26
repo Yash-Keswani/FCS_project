@@ -68,7 +68,7 @@
 		}).then((response) => response.json()).then((data) => {
         let toput = ""
         data.forEach((doc) => {
-            toput += doc["key"]+": <a href=/medimode/media/verify/"+doc["filepath"]+">"+doc["filename"]+"</a><br/>"
+            toput += doc["key"]+": <a target='_blank' href=/medimode/media/verify/"+doc["filepath"]+">"+doc["filename"]+"</a><br/>"
         })
         document.getElementById("id_documents").innerHTML=toput
 			})

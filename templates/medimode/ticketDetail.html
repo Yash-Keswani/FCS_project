@@ -9,26 +9,52 @@
 <p>Issued to: {{ object.issued }}</p>
 <p>Description: {{ object.description }}</p>
 <br><br>
-<form enctype="multipart/form-data" target="_self">
+<form enctype="multipart/form-data" method="post">
+	{% csrf_token %}
+	<input type="text" id="id_ticket_id" name="ticket_id" hidden value="{{ object.id }}">
 	<table>
+		{% if object.transaction %}
+			<tr>
+				<th>Transaction Amount:</th>
+				<td>{{ object.transaction.amount }}</td>
+				{% if object.transaction.sender.user == user %}
+					<td>
+						<button id="id_pay" name="pay" value="Pay">Pay</button>
+					</td>
+				{% endif %}
+		{% else %}
+			<tr>
+				<th>Transaction Amount:</th>
+				<td><input type="number" name="money" id="id_money"/></td>
+			<tr>
+				<td>
+					<select name="moneyreq" id="id_moneyreq">
+						<option id="req">Request</option>
+						<option id="pay">Pay</option>
+					</select><br>
+				</td>
+				<td>
+					<button value="transaction" type="submit" id="id_add_transaction" name="add_transaction">Create Transaction
+					</button>
+				</td>
+			</tr>
+		{% endif %}
+		<br>
+		{% if object.shareables %}
+			<tr>
+				<th>Attached Documents:</th>
+				<td>
+					{% for doc in object.shareables.all %}
+						<a target="_blank" href="/medimode/media/verify/{{ doc.doc_file.name }}">{{ doc.filename }}</a>
+					{% endfor %}
+				</td>
+			</tr>
+		{% endif %}
 		<tr>
-			<th>Transaction Amount:</th>
-			<td><input type="number" name="money" id="id_money"/></td>
-		<tr>
+			<td><input type="file" name="doc_files" id="id_doc_files" value="Upload Documents" multiple/><br></td>
 			<td>
-				<select name="moneyreq" id="id_moneyreq">
-					<option id="req">Request</option>
-					<option id="pay">Pay</option>
-				</select><br>
+				<button type="submit" id="id_attach_doc" name="attach_doc" value="Attach">Attach</button>
 			</td>
-			<td>
-				<button value="transaction">Create Transaction</button>
-			</td>
-		</tr>
-		<tr><td>| </td></tr>
-		<tr>
-			<td><input type="file" value="Upload Documents" multiple/><br></td>
-			<td><input type="submit" value="Attach"></td>
 		</tr>
 	</table>
 </form>

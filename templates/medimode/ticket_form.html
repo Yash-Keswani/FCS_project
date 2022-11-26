@@ -31,6 +31,7 @@
 		<tr>
 		<th>Issued To:</th>
 		<td>
+			<input type="hidden" id="id_ticket_id" name="ticket_id" value="{{ ticket_id }}"/>
 			{% if issued %}
 				<input type="hidden" id="id_issued_to" name="issued_to" value="{{ issued }}"/>
 			{% else %}

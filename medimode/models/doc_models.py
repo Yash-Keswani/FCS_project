@@ -8,7 +8,10 @@ class Document(models.Model):
 		
 	@property
 	def verified(self):
+		return True # STUB
 		with open(self.doc_file.path, mode='rb') as fd:
+			self.doc_hash = sha256(fd.read()).hexdigest()  # remove this, hash on init
+			self.save()
 			return sha256(fd.read()).hexdigest() == self.doc_hash
 		# TODO: use blockchain here
 	
