@@ -10,8 +10,6 @@ from django_cryptography.fields import encrypt
 
 from .doc_models import Document
 
-role_model_map = {}
-
 def gen_otpseed():
 	return base64.b32encode(secrets.token_bytes(10)).decode(encoding='utf-8')
 
@@ -29,6 +27,7 @@ class User(AbstractUser):
 	
 	role = models.TextField(choices=UserRoleChoices.choices, null=True)
 	OTP_seed = encrypt(models.TextField(default=gen_otpseed))
+	stripe_acct = models.TextField(max_length=100, blank=True)
 	
 	@property
 	def profile(self):

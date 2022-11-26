@@ -1,6 +1,8 @@
 import difflib
 import hashlib
+import os
 
+import stripe
 from django.utils.decorators import method_decorator
 from ratelimit.decorators import ratelimit
 
@@ -21,6 +23,8 @@ from medimode.models import Insurance, Hospital, Pharmacy, Doctor, Shareable, Ti
 from medimode.views_base import AuthTemplateView, AuthDetailView, AuthListView, AuthCreateView, AdminListView, AuthView, \
 	AdminView
 
+stripe.api_key = os.getenv("stripe_api_key")
+
 # >> PUBLIC VIEWS << #
 @method_decorator(ratelimit(key='post:username', rate='20/m', method='POST', block=True), name='post')
 @method_decorator(ratelimit(key='post:username', rate='100/h', method='POST', block=True), name='post')
@@ -28,10 +32,21 @@ class Login(LoginView):
 	next_page = reverse_lazy("medimode_index")
 
 class Logout(AuthView):
-	def get(self,request, **kwargs):
+	def get(self, request, **kwargs):
 		logout(request)
 		return redirect(reverse('login'))
 	# next_page = reverse_lazy("medimode_index")
+
+class MyStripe(AuthView):
+	@staticmethod
+	def get(request):
+		response = stripe.AccountLink.create(
+			account=request.user.stripe_acct,
+			return_url=request.build_absolute_uri(reverse('medimode_index')),
+			refresh_url=request.build_absolute_uri(reverse('medimode_index')),
+			type="account_onboarding",
+		)
+		return redirect(response["url"])
 
 class SignupOrg(TemplateView):
 	template_name = "medimode/signup/org.html"
@@ -58,8 +73,9 @@ class SignupOrg(TemplateView):
 		_location= get_clean(_post, 'location')
 
 		tomake = str_to_model(get_clean(_post, "model"))
+		acct = stripe.Account.create(type="custom", capabilities={"transfers": {"requested": True}})
 		_user = User.objects.create_user(username=_username, first_name=_username, password=_password,
-																		 role=_post.get('model'))
+																		 role=_post.get('model'), stripe_acct=acct["id"])
 		_model = tomake.objects.create(bio=_bio, user=_user, contact_number=_contact, image0=_image0, image1=_image1,
 																	 location_state=_location_state, location_city=_location_city, location=_location)
 		return redirect(reverse('login'))
@@ -228,6 +244,7 @@ class DoctorView(AuthDetailView):
 
 class ProfileView(AuthDetailView):
 	model = Profile
+	
 	def get_object(self, queryset=None):
 		return self.request.user.profile
 

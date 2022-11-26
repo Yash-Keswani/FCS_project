@@ -17,7 +17,7 @@
 			<tr>
 				<th>Transaction Amount:</th>
 				<td>{{ object.transaction.amount }}</td>
-				{% if object.transaction.sender.user == user %}
+				{% if object.transaction.sender.user == user and object.transaction.completed == 0%}
 					<td>
 						<button id="id_pay" name="pay" value="Pay">Pay</button>
 					</td>

@@ -45,7 +45,7 @@ urlpatterns = [
 	path('doctor/<int:pk>', views.DoctorView.as_view(), name='doctor_details'),
 
 	path('profile', views.ProfileView.as_view(), name='profile_details'),
-	
+	path('my_stripe', views.MyStripe.as_view(), name='my_stripe'),
 	
 	path('share_document', views.ShareDocument.as_view(), name='share_document'),
 	path('ticket/<int:pk>', views.TicketView.as_view(), name='ticket_view'),
@@ -56,7 +56,4 @@ urlpatterns = [
 	path('media/<path:filepath>', views.fetch_media, name='fetch_media'),
 
 	path('previousBills', views.MyTicketsforBills.as_view(), name='my_ticketsBills'),
-	
-
-	
 ]
