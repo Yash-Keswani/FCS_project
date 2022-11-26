@@ -3,6 +3,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hello World</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
     
@@ -28,8 +30,36 @@
         </div>
         </div>
         <div class="Profile">
-            <a href="">Profile</a>  
-            <h1>{{object.user.full_name}}</h1>
+            
+            <div class="menu-toggle">
+                <button class="shit"></button> 
+                <img height="50px" src="https://i.pinimg.com/564x/a6/d5/b4/a6d5b418cbbd6665511833ec139e7aa7.jpg">
+                
+            
+            </div>
+
+            <aside class="sidebar">
+                <h3>Menu</h3>
+                
+                <nav class="menu">
+                    <a href="./" class="menu-item is-active">Home</a>
+                    <a href="/medimode/profile" class="menu-item">Profile</a>
+                    <a href="#" class="menu-item">Account Management</a>
+                    <a href="/medimode/logout" class="menu-item">Logout</a>
+                </nav>
+    
+            </aside>
+
+            <script>
+                const menu_toggle = document.querySelector('.menu-toggle');
+                const sidebar = document.querySelector('.sidebar');
+        
+                menu_toggle.addEventListener('click', () => {
+                    menu_toggle.classList.toggle('is-active');
+                    sidebar.classList.toggle('is-active');
+                });
+            </script>
+            <!-- <h1>{{object.user.full_name}}</h1> -->
         </div>    
     </div>
 </body>

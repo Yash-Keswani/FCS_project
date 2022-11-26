@@ -4,8 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Approve Users</title>
     <link href="{% static 'home.css' %}" rel="stylesheet" />
+  
 </head>
 <body>
 {% block content %}
@@ -18,12 +21,38 @@
                 {% endfor %}
             </select>
         </div>
-        <button type="button" onclick ="fetch_documents()">Fetch Documents</button>
+        <div>
+        <button type="button" onclick ="fetch_documents()" >Fetch Documents</button>
+        <div>
         <div id="id_documents">
 
         </div>
-        <input type="submit" value="Approve Users">
+        <input type="submit" value="Approve  Users">
     </form>
+    <div class="centre">
+        <a href="/medimode/remove_users">Remove users</a>
+    </div>
+    <div class="Profile">        
+        <div class="menu-toggle">
+            <button class="shit"></button> 
+            <img height="50px" src="https://i.pinimg.com/564x/a6/d5/b4/a6d5b418cbbd6665511833ec139e7aa7.jpg">
+        </div>
+        <aside class="sidebar">
+            <h3>Menu</h3>
+            <nav class="menu">
+                <a href="/medimode/logout" class="menu-item">Logout</a>
+            </nav>
+        </aside>
+        <script>
+            const menu_toggle = document.querySelector('.menu-toggle');
+            const sidebar = document.querySelector('.sidebar');
+    
+            menu_toggle.addEventListener('click', () => {
+                menu_toggle.classList.toggle('is-active');
+                sidebar.classList.toggle('is-active');
+            });
+        </script>
+    </div>
 {% endblock %}
 <script>
 	function fetch_documents(){

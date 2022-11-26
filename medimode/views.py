@@ -14,6 +14,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView
+from django.contrib.auth import logout
 
 from medimode.models import Insurance, Hospital, Pharmacy, Doctor, Shareable, Ticket, Profile, Ticket_Shareable, \
 	Organisation, User, Patient, Document, Transaction
@@ -25,6 +26,12 @@ from medimode.views_base import AuthTemplateView, AuthDetailView, AuthListView, 
 @method_decorator(ratelimit(key='post:username', rate='100/h', method='POST', block=True), name='post')
 class Login(LoginView):
 	next_page = reverse_lazy("medimode_index")
+
+class Logout(AuthView):
+	def get(self,request, **kwargs):
+		logout(request)
+		return redirect(reverse('login'))
+	# next_page = reverse_lazy("medimode_index")
 
 class SignupOrg(TemplateView):
 	template_name = "medimode/signup/org.html"
@@ -41,7 +48,7 @@ class SignupOrg(TemplateView):
 		_username = get_clean(_post, 'username')
 		_password= get_clean(_post, 'password')
 		_bio= get_clean(_post, 'bio')
-		_contact= get_clean(_post, 'contact_number')
+		_contact= get_clean_int(_post, 'contact_number')
 		
 		_image0= sanitise_doc(_files.get('image0'))
 		_image1= sanitise_doc(_files.get('image1'))
@@ -123,9 +130,15 @@ class ApproveUsers(AdminListView):
 	@staticmethod
 	def post(request):
 		approved_users = request.POST.getlist("approved_users")
+		approved_users_updates=[]
 		if approved_users is None:
 			raise ValidationError()
-		approved_profiles = [get_object_or_404(Profile, pk=int(x)) for x in approved_users]
+		for i in approved_users:
+			if str(i).isnumeric:
+				approved_users_updates.append(i)
+			else:
+				raise ValidationError("Approved users must be a list of integers")
+		approved_profiles = [get_object_or_404(Profile, pk=int(x)) for x in approved_users_updates]
 		
 		for profile in approved_profiles:
 			profile.approved = True
@@ -168,7 +181,15 @@ class RemoveUsers(AdminListView):
 	@staticmethod
 	def post(request):
 		approved_users = request.POST.get("approved_users")
-		approved_profiles = [Profile.objects.get_object_or_404(pk=x) for x in approved_users]
+		approved_users_updates=[]
+		if approved_users is None:
+			raise ValidationError()
+		for i in approved_users:
+			if str(i).isnumeric:
+				approved_users_updates.append(i)
+			else:
+				raise ValidationError("Approved users must be a list of integers")
+		approved_profiles = [get_object_or_404(Profile,pk=x) for x in approved_users_updates]
 		
 		for profile in approved_profiles:
 			profile.approved = False
@@ -204,6 +225,11 @@ class InsuranceView(AuthDetailView):
 
 class DoctorView(AuthDetailView):
 	model = Doctor
+
+class ProfileView(AuthDetailView):
+	model = Profile
+	def get_object(self, queryset=None):
+		return self.request.user.profile
 
 class PharmacyView(AuthDetailView):
 	model = Pharmacy
