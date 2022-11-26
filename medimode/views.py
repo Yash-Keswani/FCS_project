@@ -41,15 +41,17 @@ class SignupOrg(TemplateView):
 		_post = self.request.POST
 		_files = self.request.FILES
 		_username = get_clean(_post, 'username')
-		_password = get_clean(_post, 'password')
-		_bio = get_clean(_post, 'bio')
-		_contact = get_clean(_post, 'contact_number')
-		_image0 = _files.get('image0')
-		_image1 = _files.get('image1')
-		_location_state = get_clean(_post, 'state')
-		_location_city = get_clean(_post, 'city')
-		_location = get_clean(_post, 'location')
+		_password= get_clean(_post, 'password')
+		_bio= get_clean(_post, 'bio')
+		_contact= get_clean(_post, 'contact_number')
 		
+		_image0= sanitise_doc(_files.get('image0'))
+		_image1= sanitise_doc(_files.get('image1'))
+		
+		_location_state= get_clean(_post, 'state')
+		_location_city= get_clean(_post, 'city')
+		_location= get_clean(_post, 'location')
+
 		tomake = str_to_model(get_clean(_post, "model"))
 		_user = User.objects.create_user(username=_username, first_name=_username, password=_password,
 																		 role=_post.get('model'))
@@ -63,7 +65,7 @@ class SignupIndividual(TemplateView):
 	@staticmethod
 	def get(request, **kwargs):
 		return render(request, 'medimode/signup/individual.html',
-									{"form": modelform_factory(Organisation, exclude=[])})
+									{"form": modelform_factory(Patient, exclude=[])})
 	
 	def post(self, request):
 		_post = self.request.POST
@@ -83,6 +85,37 @@ class SignupIndividual(TemplateView):
 		_model = Patient.objects.create(user=_user, bio=_bio, proof_of_address=_poa,
 																		proof_of_identity=_poi, medical_info=_med_doc)
 		return redirect(reverse('login'))
+	
+
+class SignupDoctor(TemplateView):
+	template_name = "medimode/signup/doctor.html"
+	
+	@staticmethod
+	def get(request, **kwargs):
+		return render(request, 'medimode/signup/doctor.html',
+									{"form": modelform_factory(Doctor, exclude=[])})
+	
+	def post(self, request):
+		_post = self.request.POST
+		_files = self.request.FILES
+		
+		#  COLLECTION  #
+		_username = get_clean(_post, 'username')
+		_password= get_clean(_post, 'password')
+		_bio= get_clean(_post, 'bio')
+		
+		_poa = get_document(_files, 'proof_of_address')
+		_poi = get_document(_files, 'proof_of_identity')
+		_med_doc= get_document(_files, 'medical_license')
+		
+		#  COMMIT  #
+		_user = User.objects.create_user(username=_username, first_name=_username, password=_password, role='doctor')
+		_model = Doctor.objects.create(user=_user, bio=_bio, proof_of_address=_poa,
+																		proof_of_identity=_poi, medical_license=_med_doc)
+		return redirect(reverse('login'))
+	
+
+
 
 # >> ADMIN VIEWS << #
 class ApproveUsers(AdminListView):
@@ -274,7 +307,7 @@ class IssueTicket(AuthView):
 		_issuer = request.user.profile
 		_issued = Profile.objects.get_object_or_404(get_clean_int(request.POST, "issued_to"))
 		_description = get_clean(request.POST, "description")
-		_otp = get_clean(request.POST, "otp")
+		_otp = get_clean_int(request.POST, "otp")
 		
 		tkt_shareables = []
 		
