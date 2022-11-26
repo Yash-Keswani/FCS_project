@@ -78,7 +78,7 @@ class SignupIndividual(TemplateView):
 		_med_doc= get_document_or_none(_files, 'medical_documents')
 		
 		#  COMMIT  #
-		_user = User.objects.create_user(username=_username, first_name=_username, password=_password, role='Patient')
+		_user = User.objects.create_user(username=_username, first_name=_username, password=_password, role='patient')
 		_model = Patient.objects.create(user=_user, bio=_bio, proof_of_address=_poa,
 																		proof_of_identity=_poi, medical_info=_med_doc)
 		return redirect(reverse('login'))
@@ -156,17 +156,18 @@ class Home(AuthView):
 			return redirect(reverse('approve_users'))
 		role = self.request.user.role
 		if role == "patient":
-			return "medimode/home.html"
+			return render(request,'medimode/home.html')
 		elif role == "doctor":
-			return "medimode/home.html"
+			return render(request,'medimode/home.html')
 		elif role == "pharmacy":
-			return "medimode/home.html"
+			return render(request,'medimode/home.html')
 		elif role == "hospital":
-			return "medimode/home.html"
+			return render(request,'medimode/home.html')
 		elif role == "insurance":
-			return "medimode/home.html"
+			return render(request,'medimode/home.html')
 		else:
-			return "medimode/home.html"
+			return render(request,'medimode/home.html')
+		
 
 class OTPSeed(AuthTemplateView):
 	template_name = "medimode/my_seed.html"

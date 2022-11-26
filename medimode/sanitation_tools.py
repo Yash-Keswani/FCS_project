@@ -1,8 +1,17 @@
+import json
+
 import bleach
 from django.core.exceptions import ValidationError
 import magic
 
 from medimode.models import Document, Hospital, Pharmacy, Insurance, Doctor, Patient
+
+with open("medimode/models/cities.json") as fl:
+	states_dict = json.load(fl)
+	
+def validate_location(state, city):
+	cities = states_dict.get()
+
 
 def verify_otp(request):
 	otp_given = request.POST.get("otp")
