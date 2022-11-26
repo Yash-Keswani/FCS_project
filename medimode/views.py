@@ -16,7 +16,7 @@ from django.urls import reverse_lazy
 from django.views.generic import TemplateView
 
 from medimode.models import Insurance, Hospital, Pharmacy, Doctor, Shareable, Ticket, Profile, Ticket_Shareable, \
-	Organisation, User, Patient, Document
+	Organisation, User, Patient, Document, Transaction
 from medimode.views_base import AuthTemplateView, AuthDetailView, AuthListView, AuthCreateView, AdminListView, AuthView, \
 	AdminView
 
@@ -296,11 +296,10 @@ class IssueTicket(AuthView):
 			ctx["issued"] = issued_to
 		return render(request, template_name="medimode/ticket_form.html", context=ctx)
 	
-	@staticmethod
-	def post(request: HttpRequest):
+	def post(self, request: HttpRequest):
 		#  COLLECT  #
 		_issuer = request.user.profile
-		_issued = Profile.objects.get_object_or_404(get_clean_int(request.POST, "issued_to"))
+		_issued = get_object_or_404(Profile, pk=get_clean_int(request.POST, "issued_to"))
 		_description = get_clean(request.POST, "description")
 		_otp = get_clean_int(request.POST, "otp")
 		
@@ -332,8 +331,7 @@ class IssueTicket(AuthView):
 			tkt_shareable.shared_with.add(_issuer)
 			tkt_shareables.append(tkt_shareable)
 		"""
-		tkt = Ticket(issuer=_issuer, issued=_issued, description=_description)
-		tkt.save()
+		tkt = Ticket.objects.create(issuer=_issuer, issued=_issued, description=_description)
 		tkt.shareables.add(*tkt_shareables)
 		tkt.save()
 		
@@ -359,13 +357,61 @@ class TicketView(AuthDetailView):
 	model = Ticket
 	
 	@staticmethod
-	def post(request):
-		_money = get_clean(request.POST, "money")
+	def post(request, pk, *args, **kwargs):
+		_ticket_id = get_clean_int(request.POST, "ticket_id")
+		tkt = get_object_or_404(Ticket, pk=_ticket_id)
+		if request.user.profile not in (tkt.issued, tkt.issuer):
+			raise ValidationError("Not your Ticket")
+		
+		if request.POST.get("add_transaction"):
+			TicketView.attach_transaction(request, tkt)
+		elif request.POST.get("attach_doc"):
+			TicketView.attach_document(request, tkt)
+		return redirect(reverse('ticket_view', kwargs={"pk":pk}))
+	
+	@staticmethod
+	def attach_transaction(request, tkt):
+		_money = get_clean_int(request.POST, "money")
 		_req = get_clean(request.POST, "moneyreq")
 		
-		if _req and _money:
-			payer, paid = (1, 2)
+		prf0 = request.user.profile
+		prf1 = tkt.issuer if prf0 == tkt.issued else tkt.issued
 		
+		if _req == "Pay":
+			payer, paid = prf0, prf1
+		elif _req == "Request":
+			payer, paid = prf1, prf0
+		else:
+			raise ValidationError("Invalid option sent")
+		
+		trns = Transaction.objects.create(sender=payer, receiver=paid, amount=_money, description="WIP", completed=False)
+		tkt.transaction = trns
+		tkt.save()
+	
+	@staticmethod
+	def attach_document(request, tkt):
+		prf0 = request.user.profile
+		prf1 = tkt.issuer if prf0 == tkt.issued else tkt.issued
+		
+		party = (Ticket_Shareable.PARTY.ISSUER if request.user.profile == tkt.issuer else
+						 Ticket_Shareable.PARTY.ISSUED)
+		
+		if request.FILES.getlist("doc_files") is None:
+			raise ValidationError("parameter not in form")
+		
+		cleaned_docs = [sanitise_doc(doc) for doc in request.FILES.getlist("doc_files")]
+		
+		shareables = []
+		for _doc_file in cleaned_docs:
+			tkt_shareable = Ticket_Shareable.objects.create(doc_file=_doc_file, filename=_doc_file.name,
+																											owner=request.user.profile, party=party)
+			tkt_shareable.shared_with.add(prf1)
+			tkt_shareable.save()
+			shareables.append(tkt_shareable)
+		
+		tkt.shareables.add(*shareables)
+		tkt.save()
+		return render(request, "medimode/ticketDetail.html")
 		
 with open("medimode/models/cities.json") as _fl:
 	state_text = _fl.read()
