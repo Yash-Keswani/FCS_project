@@ -2,10 +2,12 @@ import difflib
 import hashlib
 import os
 
+import jwt
 import stripe
 from django.utils.decorators import method_decorator
 from ratelimit.decorators import ratelimit
 
+from FCS import settings
 from medimode.sanitation_tools import *
 from django.contrib.auth.views import LoginView
 from django.db.models import Q
@@ -73,6 +75,7 @@ class SignupOrg(TemplateView):
 		_location= get_clean(_post, 'location')
 
 		tomake = str_to_model(get_clean(_post, "model"))
+		
 		acct = stripe.Account.create(type="custom", capabilities={"transfers": {"requested": True}})
 		_user = User.objects.create_user(username=_username, first_name=_username, password=_password,
 																		 role=_post.get('model'), stripe_acct=acct["id"])
@@ -170,6 +173,7 @@ class Documents(AdminView):
 		prf = get_object_or_404(str_to_model(_role).objects.select_related('user__profile'), pk=_pid)
 		
 		docs = []
+		tosend = []
 		if _role == "doctor":
 			docs.extend([("Proof of Identity", prf.proof_of_identity),
 									 ("Proof of Address", prf.proof_of_address),
@@ -180,10 +184,9 @@ class Documents(AdminView):
 			if prf.medical_info is not None:
 				docs.append(("Medical Info", prf.medical_info))
 		else:
-			docs = []  # ([("Image 0", prf.image0), ("Image 1", prf.image1)])
-			# TODO: Image 0 and Image 1 fetching while admin approval
+			for doc in ([("Image 0", prf.image0), ("Image 1", prf.image1)]):
+				tosend.append({"key": doc[0], "filepath": doc[1].path, "filename": doc[1].name})
 		
-		tosend = []
 		for doc in docs:
 			tosend.append({"key": doc[0], "filepath": doc[1].doc_file.name, "filename": doc[1].filename})
 		return JsonResponse(tosend, safe=False)
@@ -411,7 +414,9 @@ class TicketView(AuthDetailView):
 			TicketView.attach_transaction(request, tkt)
 		elif request.POST.get("attach_doc"):
 			TicketView.attach_document(request, tkt)
-		return redirect(reverse('ticket_view', kwargs={"pk":pk}))
+		elif request.POST.get("pay") and tkt.transaction:
+			return redirect(reverse('pay', kwargs={"pk": tkt.transaction_id}))
+		return redirect(reverse('ticket_view', kwargs={"pk": pk}))
 	
 	@staticmethod
 	def attach_transaction(request, tkt):
@@ -493,3 +498,15 @@ class Search(AuthTemplateView):
 			
 		ctx = {"entries": [{"role": x.role, "name": x.profile.full_name, "bio": x.profile.bio, "id": x.profile.id} for x in entries]}
 		return JsonResponse(data=ctx)
+
+class MakePayment(AuthView):
+	def get(self, request, pk):
+		trns = get_object_or_404(Transaction, pk=pk)
+		transaction_info = {
+			"payer": trns.sender.user.stripe_acct,
+			"payee": trns.receiver.user.stripe_acct,
+			"price": trns.amount,
+			"success": 0
+		}
+		my_jwt = jwt.encode(transaction_info, settings.SECRET_KEY, algorithm='HS256')
+		return redirect(reverse('make_payment')+"?token="+my_jwt)

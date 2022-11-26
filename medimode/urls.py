@@ -51,6 +51,8 @@ urlpatterns = [
 	path('ticket/<int:pk>', views.TicketView.as_view(), name='ticket_view'),
 	path('issue_ticket', views.IssueTicket.as_view(), name='issue_ticket'),
 	
+	path('pay/<int:pk>', views.MakePayment.as_view(), name='pay'),
+	
 	path('media/delete/<path:filepath>', views.delete_media, name='delete_media'),
 	path('media/verify/<path:filepath>', views.verify_fetch_media, name='verified_media'),
 	path('media/<path:filepath>', views.fetch_media, name='fetch_media'),

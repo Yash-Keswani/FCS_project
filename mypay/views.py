@@ -34,7 +34,7 @@ def transaction_failure(request):
 
 class MakePayment(View):
 	def get(self, request):
-		token = request.GET.get("token")
+		token=request.GET.get("token")
 		transaction_info = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
 		transaction_info['success'] = "1"
 		jwt_success = jwt.encode(transaction_info, settings.SECRET_KEY, algorithm='HS256')
