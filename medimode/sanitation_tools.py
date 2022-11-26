@@ -33,6 +33,11 @@ def get_clean(_post, attr):
 	else:
 		return bleach.clean(value)
 
+def sanitise_numeric(value):
+	if value is None or not value.isnumeric():
+		raise ValidationError("Invalid integer provided")
+	return int(value)
+	
 def get_clean_int(_post, attr):
 	value = _post.get(attr)
 	if value is None or not value.isnumeric():

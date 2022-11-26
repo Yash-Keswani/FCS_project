@@ -83,8 +83,8 @@ class Organisation(Profile):
 	
 	contact_number = models.BigIntegerField(validators=[MinValueValidator(1000_0000), MaxValueValidator(99_9999_9999)])
 	# could be another model for image info with many-to-one relation
-	image0 = models.ImageField(upload_to='uploads/images/')  # upload with appropriate name?
-	image1 = models.ImageField(upload_to='uploads/images/')
+	image0 = models.OneToOneField(Document, on_delete=models.RESTRICT, related_name="img0_%(class)s")
+	image1 = models.OneToOneField(Document, on_delete=models.RESTRICT, related_name="img1_%(class)s")
 	location_state = models.TextField(max_length=200, default="Delhi")
 	location_city = models.TextField(max_length=200, default="New Delhi")
 	location = models.TextField(max_length=200)

@@ -67,8 +67,8 @@ class SignupOrg(TemplateView):
 		_bio= get_clean(_post, 'bio')
 		_contact= get_clean_int(_post, 'contact_number')
 		
-		_image0= sanitise_doc(_files.get('image0'))
-		_image1= sanitise_doc(_files.get('image1'))
+		_image0= get_document(_files, 'image0')
+		_image1= get_document(_files, 'image1')
 		
 		_location_state= get_clean(_post, 'state')
 		_location_city= get_clean(_post, 'city')
@@ -76,7 +76,9 @@ class SignupOrg(TemplateView):
 
 		tomake = str_to_model(get_clean(_post, "model"))
 		
-		acct = stripe.Account.create(type="custom", capabilities={"transfers": {"requested": True}})
+		acct = stripe.Account.create(type="custom", capabilities={
+			"transfers": {"requested": True},
+			"card_payments": {"requested": True}})
 		_user = User.objects.create_user(username=_username, first_name=_username, password=_password,
 																		 role=_post.get('model'), stripe_acct=acct["id"])
 		_model = tomake.objects.create(bio=_bio, user=_user, contact_number=_contact, image0=_image0, image1=_image1,
@@ -104,8 +106,11 @@ class SignupIndividual(TemplateView):
 		_poi = get_document(_files, 'proof_of_identity')
 		_med_doc = get_document_or_none(_files, 'medical_documents')
 		
+		acct = stripe.Account.create(type="custom", capabilities={
+			"transfers": {"requested": True},
+			"card_payments": {"requested": True}})
 		#  COMMIT  #
-		_user = User.objects.create_user(username=_username, first_name=_username, password=_password, role='patient')
+		_user = User.objects.create_user(username=_username, first_name=_username, password=_password, role='patient', stripe_acct=acct["id"])
 		_model = Patient.objects.create(user=_user, bio=_bio, proof_of_address=_poa,
 																		proof_of_identity=_poi, medical_info=_med_doc)
 		return redirect(reverse('login'))
@@ -149,15 +154,10 @@ class ApproveUsers(AdminListView):
 	@staticmethod
 	def post(request):
 		approved_users = request.POST.getlist("approved_users")
-		approved_users_updates=[]
 		if approved_users is None:
-			raise ValidationError()
-		for i in approved_users:
-			if str(i).isnumeric:
-				approved_users_updates.append(i)
-			else:
-				raise ValidationError("Approved users must be a list of integers")
-		approved_profiles = [get_object_or_404(Profile, pk=int(x)) for x in approved_users_updates]
+			raise ValidationError("Parameter missing")
+		approved_users = [sanitise_numeric(x) for x in approved_users]
+		approved_profiles = [get_object_or_404(Profile, pk=x) for x in approved_users]
 		
 		for profile in approved_profiles:
 			profile.approved = True
@@ -184,8 +184,7 @@ class Documents(AdminView):
 			if prf.medical_info is not None:
 				docs.append(("Medical Info", prf.medical_info))
 		else:
-			for doc in ([("Image 0", prf.image0), ("Image 1", prf.image1)]):
-				tosend.append({"key": doc[0], "filepath": doc[1].path, "filename": doc[1].name})
+			docs.extend([("Image 0", prf.image0), ("Image 1", prf.image1)])
 		
 		for doc in docs:
 			tosend.append({"key": doc[0], "filepath": doc[1].doc_file.name, "filename": doc[1].filename})
@@ -195,23 +194,16 @@ class RemoveUsers(AdminListView):
 	template_name = "medimode/reject_users.html"
 	model = Profile
 	
-	# TODO : Remove users from database not working
-
 	def get_queryset(self):
 		return Profile.objects.filter(approved=True)
 	
 	@staticmethod
 	def post(request):
-		approved_users = request.POST.get("approved_users")
-		approved_users_updates=[]
+		approved_users = request.POST.getlist("approved_users")
 		if approved_users is None:
-			raise ValidationError()
-		for i in approved_users:
-			if str(i).isnumeric:
-				approved_users_updates.append(i)
-			else:
-				raise ValidationError("Approved users must be a list of integers")
-		approved_profiles = [get_object_or_404(Profile,pk=x) for x in approved_users_updates]
+			raise ValidationError("Parameter missing")
+		approved_users = [sanitise_numeric(x) for x in approved_users]
+		approved_profiles = [get_object_or_404(Profile, pk=x) for x in approved_users]
 		
 		for profile in approved_profiles:
 			profile.approved = False
@@ -251,8 +243,6 @@ class DoctorView(AuthDetailView):
 class ProfileView(AuthDetailView):
 	model = Profile
 
-	# TODO : Profile while viewing documents not working
-
 	def get_object(self, queryset=None):
 		return self.request.user.profile
 	
@@ -262,8 +252,7 @@ class ProfileView(AuthDetailView):
 
 		role=self.request.user.role
 		prf=str_to_model(role).objects.get(user=self.request.user)
-		# get context data 
-
+		# get context data
 		
 		docs = []
 		if role == "doctor":
@@ -276,8 +265,7 @@ class ProfileView(AuthDetailView):
 			if prf.medical_info is not None:
 				docs.append(("Medical Info", prf.medical_info))
 		else:
-			docs = []  # ([("Image 0", prf.image0), ("Image 1", prf.image1)])
-			# TODO: Image 0 and Image 1 fetching while admin approval
+			docs = ([("Image 0", prf.image0), ("Image 1", prf.image1)])
 		context['docs']=docs
 		return context
 
