@@ -1,47 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Search Locations</title>
+	<meta charset="UTF-8">
+	<title>Search Locations</title>
 </head>
 <body>
-<form target="_self" method="post">
-    {% csrf_token %}
-    <select name="category" id = "id_category" required>
-        <option value="hospital">Hospital</option>
-        <option value="pharmacy">Pharmacy</option>
-        <option value="insurance">Insurance Firm</option>
-        <option value="doctor">Doctor</option>
-    </select>
-		<th>Location:</th>
-		<td>
-			<select id="id_state" name="state" onchange="load_state()">
-				{% for state in state_dict.keys %}
-					<option value="{{ state }}">{{ state }}</option>
-				{% endfor %}
-			</select>
-		</td>
-		<td>
+<form target="_self" method="post" id="submitme" onsubmit="form_submit();return false">
+	{% csrf_token %}
+	<select name="category" id="id_category" required>
+		<option value="hospital">Hospital</option>
+		<option value="pharmacy">Pharmacy</option>
+		<option value="insurance">Insurance Firm</option>
+		<option value="doctor">Doctor</option>
+	</select>
+	<th>Location:</th>
+	<td>
+		<select id="id_state" name="state" onchange="load_state()">
+			{% for state in state_dict.keys %}
+				<option value="{{ state }}">{{ state }}</option>
+			{% endfor %}
+		</select>
+	</td>
+	<td>
 		<select id="id_city" name="city">
 		</select>
-		</td>
-    <input type="text" id="id_entity_name" name="entity_name"/>
-    <button type="submit" value="submit">Submit</button>
+	</td>
+	<input type="text" id="id_entity_name" name="entity_name"/>
+	<button type="submit" value="submit" id="id_name_search" name="name_search">Search by Name</button>
+	<button type="submit" value="submit" id="id_loc_search" name="loc_search">Search by Location</button>
+	<button type="submit" value="submit" id="search" name="search">Search by Both</button>
 </form>
-{% if entries %}
-    {% for entry in entries %}
-        <li><a href="/medimode/{{ entry.role }}/{{ entry.profile.id }}">{{ entry.profile.full_name }} - {{ entry.profile.bio }}</a></li><br>
-    {% endfor %}
-{% endif %}
+<ul id="id_output">
+	{% if entries %}
+		{% for entry in entries %}
+			<li><a href="/medimode/{{ entry.role }}/{{ entry.profile.id }}">{{ entry.profile.full_name }}
+				- {{ entry.profile.bio }}</a></li><br>
+		{% endfor %}
+	{% endif %}
+</ul>
 <script>
-		// TODO: preserve values after form submit, optional tick for location or name filtering or both
     const state_json = JSON.parse(`{{ state_json | safe }}`)
-    function load_state(){
-        const state =	document.getElementById("id_state").value
+
+    function load_state() {
+        const state = document.getElementById("id_state").value
         document.getElementById("id_city").innerHTML = ""
-        state_json[state].forEach((city)=>{
+        state_json[state].forEach((city) => {
             document.getElementById("id_city").options.add(new Option(city, city))
         })
+    }
+
+    function form_submit() {
+        const formElement = document.getElementById("submitme")
+        let data = new URLSearchParams(new FormData(formElement));
+        data.append(document.activeElement.getAttribute('name'), 'test');
+        fetch("/medimode/search", {
+            body: data,
+            method: "post"
+        }).then((data) => data.json()).then((data) => {
+                const out = document.getElementById("id_output")
+                out.innerHTML = ""
+                toput = ""
+                data["entries"].forEach((entry) => {
+                    toput += '<li><a href="/medimode/' + entry["role"] + '/' + entry["id"] + '">' +
+                        entry["name"] + ' - ' + entry["bio"] + '</a></li>'
+                })
+                out.innerHTML = toput
+            }
+        );
     }
 </script>
 </body>
