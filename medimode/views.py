@@ -123,9 +123,15 @@ class ApproveUsers(AdminListView):
 	@staticmethod
 	def post(request):
 		approved_users = request.POST.getlist("approved_users")
+		approved_users_updates=[]
 		if approved_users is None:
 			raise ValidationError()
-		approved_profiles = [get_object_or_404(Profile, pk=int(x)) for x in approved_users]
+		for i in approved_users:
+			if str(i).isnumeric:
+				approved_users_updates.append(i)
+			else:
+				raise ValidationError("Approved users must be a list of integers")
+		approved_profiles = [get_object_or_404(Profile, pk=int(x)) for x in approved_users_updates]
 		
 		for profile in approved_profiles:
 			profile.approved = True
@@ -168,7 +174,15 @@ class RemoveUsers(AdminListView):
 	@staticmethod
 	def post(request):
 		approved_users = request.POST.get("approved_users")
-		approved_profiles = [Profile.objects.get_object_or_404(pk=x) for x in approved_users]
+		approved_users_updates=[]
+		if approved_users is None:
+			raise ValidationError()
+		for i in approved_users:
+			if str(i).isnumeric:
+				approved_users_updates.append(i)
+			else:
+				raise ValidationError("Approved users must be a list of integers")
+		approved_profiles = [get_object_or_404(Profile,pk=x) for x in approved_users_updates]
 		
 		for profile in approved_profiles:
 			profile.approved = False
