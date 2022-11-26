@@ -27,7 +27,7 @@ urlpatterns = [
 	
 	path('login', views.Login.as_view(), name='login'),
 	path('logout', views.Logout.as_view(), name='logout'),
-	
+
 	path('signup/org', views.SignupOrg.as_view(), name='signup_org'),
 	path('signup/individual', views.SignupIndividual.as_view(), name='signup_individual'),
 	path('signup/doctor', views.SignupDoctor.as_view(), name='signup_doctor'),
@@ -43,6 +43,9 @@ urlpatterns = [
 	path('hospital/<int:pk>', views.HospitalView.as_view(), name='hospital_details'),
 	
 	path('doctor/<int:pk>', views.DoctorView.as_view(), name='doctor_details'),
+
+	path('profile', views.ProfileView.as_view(), name='profile_details'),
+	
 	
 	path('share_document', views.ShareDocument.as_view(), name='share_document'),
 	path('ticket/<int:pk>', views.TicketView.as_view(), name='ticket_view'),

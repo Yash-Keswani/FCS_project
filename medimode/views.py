@@ -226,6 +226,11 @@ class InsuranceView(AuthDetailView):
 class DoctorView(AuthDetailView):
 	model = Doctor
 
+class ProfileView(AuthDetailView):
+	model = Profile
+	def get_object(self, queryset=None):
+		return self.request.user.profile
+
 class PharmacyView(AuthDetailView):
 	model = Pharmacy
 
