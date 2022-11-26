@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Ticket Information</title>
+	<meta charset="UTF-8">
+	<title>Ticket Information</title>
 </head>
 <body>
 <p>Issued by: {{ object.issuer }}</p>
@@ -10,13 +10,27 @@
 <p>Description: {{ object.description }}</p>
 <br><br>
 <form enctype="multipart/form-data" target="_self">
-    Create Transaction of Value: <input type="number" name="money" id="id_money"/><br>
-    <select name="moneyreq" id="id_moneyreq">
-        <option id="req">Request</option>
-        <option id="pay">Pay</option>
-    </select><br>
-    <input type="file" value="Upload Documents" multiple/><br>
-    <input type="submit">
+	<table>
+		<tr>
+			<th>Transaction Amount:</th>
+			<td><input type="number" name="money" id="id_money"/></td>
+		<tr>
+			<td>
+				<select name="moneyreq" id="id_moneyreq">
+					<option id="req">Request</option>
+					<option id="pay">Pay</option>
+				</select><br>
+			</td>
+			<td>
+				<button value="transaction">Create Transaction</button>
+			</td>
+		</tr>
+		<tr><td>| </td></tr>
+		<tr>
+			<td><input type="file" value="Upload Documents" multiple/><br></td>
+			<td><input type="submit" value="Attach"></td>
+		</tr>
+	</table>
 </form>
 </body>
 </html>

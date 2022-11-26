@@ -1,6 +1,5 @@
 import difflib
 import hashlib
-import json
 
 from django.utils.decorators import method_decorator
 from ratelimit.decorators import ratelimit
@@ -26,14 +25,14 @@ from medimode.views_base import AuthTemplateView, AuthDetailView, AuthListView, 
 @method_decorator(ratelimit(key='post:username', rate='100/h', method='POST', block=True), name='post')
 class Login(LoginView):
 	next_page = reverse_lazy("medimode_index")
-	
+
 class SignupOrg(TemplateView):
 	template_name = "medimode/signup/org.html"
 	
 	@staticmethod
 	def get(request, **kwargs):
-		with open("medimode/models/cities.json") as fl:
-			state_text = fl.read()
+		with open("medimode/models/cities.json") as _fl:
+			state_text = _fl.read()
 		return render(request, 'medimode/signup/org.html',
 									{"form": modelform_factory(Organisation, exclude=[]),
 									 "state_json": state_text, "state_dict": json.loads(state_text)})
@@ -42,18 +41,20 @@ class SignupOrg(TemplateView):
 		_post = self.request.POST
 		_files = self.request.FILES
 		_username = get_clean(_post, 'username')
-		_password= get_clean(_post, 'password')
-		_bio= get_clean(_post, 'bio')
-		_contact= get_clean(_post, 'contact_number')
-		_image0= _files.get('image0')
-		_image1= _files.get('image1')
-		_location_state= get_clean(_post, 'state')
-		_location_city= get_clean(_post, 'city')
-		_location= get_clean(_post, 'location')
-
+		_password = get_clean(_post, 'password')
+		_bio = get_clean(_post, 'bio')
+		_contact = get_clean(_post, 'contact_number')
+		_image0 = _files.get('image0')
+		_image1 = _files.get('image1')
+		_location_state = get_clean(_post, 'state')
+		_location_city = get_clean(_post, 'city')
+		_location = get_clean(_post, 'location')
+		
 		tomake = str_to_model(get_clean(_post, "model"))
-		_user = User.objects.create_user(username=_username, first_name=_username, password=_password, role=_post.get('model'))
-		_model = tomake.objects.create(bio=_bio, user=_user, contact_number=_contact, image0=_image0, image1=_image1, location_state=_location_state, location_city=_location_city, location=_location)
+		_user = User.objects.create_user(username=_username, first_name=_username, password=_password,
+																		 role=_post.get('model'))
+		_model = tomake.objects.create(bio=_bio, user=_user, contact_number=_contact, image0=_image0, image1=_image1,
+																	 location_state=_location_state, location_city=_location_city, location=_location)
 		return redirect(reverse('login'))
 
 class SignupIndividual(TemplateView):
@@ -70,19 +71,19 @@ class SignupIndividual(TemplateView):
 		
 		#  COLLECTION  #
 		_username = get_clean(_post, 'username')
-		_password= get_clean(_post, 'password')
-		_bio= get_clean(_post, 'bio')
+		_password = get_clean(_post, 'password')
+		_bio = get_clean(_post, 'bio')
 		
 		_poa = get_document(_files, 'proof_of_address')
 		_poi = get_document(_files, 'proof_of_identity')
-		_med_doc= get_document_or_none(_files, 'medical_documents')
+		_med_doc = get_document_or_none(_files, 'medical_documents')
 		
 		#  COMMIT  #
 		_user = User.objects.create_user(username=_username, first_name=_username, password=_password, role='patient')
 		_model = Patient.objects.create(user=_user, bio=_bio, proof_of_address=_poa,
 																		proof_of_identity=_poi, medical_info=_med_doc)
 		return redirect(reverse('login'))
-	
+
 # >> ADMIN VIEWS << #
 class ApproveUsers(AdminListView):
 	template_name = "medimode/approve_users.html"
@@ -110,7 +111,7 @@ class Documents(AdminView):
 		_pid = get_clean_int(json.loads(request.body), "profile_id")
 		_role = get_object_or_404(Profile, pk=_pid).user.role
 		prf = get_object_or_404(str_to_model(_role).objects.select_related('user__profile'), pk=_pid)
-	
+		
 		docs = []
 		if _role == "doctor":
 			docs.extend([("Proof of Identity", prf.proof_of_identity),
@@ -122,13 +123,12 @@ class Documents(AdminView):
 			if prf.medical_info is not None:
 				docs.append(("Medical Info", prf.medical_info))
 		else:
-			docs=[]  # ([("Image 0", prf.image0), ("Image 1", prf.image1)])
+			docs = []  # ([("Image 0", prf.image0), ("Image 1", prf.image1)])
 		
 		tosend = []
 		for doc in docs:
 			tosend.append({"key": doc[0], "filepath": doc[1].doc_file.name, "filename": doc[1].filename})
 		return JsonResponse(tosend, safe=False)
-		
 
 class RemoveUsers(AdminListView):
 	template_name = "medimode/reject_users.html"
@@ -156,18 +156,17 @@ class Home(AuthView):
 			return redirect(reverse('approve_users'))
 		role = self.request.user.role
 		if role == "patient":
-			return render(request,'medimode/home.html')
+			return render(request, 'medimode/home.html')
 		elif role == "doctor":
-			return render(request,'medimode/home.html')
+			return render(request, 'medimode/home.html')
 		elif role == "pharmacy":
-			return render(request,'medimode/home.html')
+			return render(request, 'medimode/home.html')
 		elif role == "hospital":
-			return render(request,'medimode/home.html')
+			return render(request, 'medimode/home.html')
 		elif role == "insurance":
-			return render(request,'medimode/home.html')
+			return render(request, 'medimode/home.html')
 		else:
-			return render(request,'medimode/home.html')
-		
+			return render(request, 'medimode/home.html')
 
 class OTPSeed(AuthTemplateView):
 	template_name = "medimode/my_seed.html"
@@ -206,7 +205,8 @@ class MyDocuments(AuthListView):
 	model = Shareable
 	
 	def get_queryset(self):
-		return Shareable.objects.filter(owner=self.request.user.profile) | Shareable.objects.filter(shared_with=self.request.user.profile)
+		return Shareable.objects.filter(owner=self.request.user.profile) | Shareable.objects.filter(
+			shared_with=self.request.user.profile)
 
 def delete_media(request, filepath):
 	file = get_object_or_404(Shareable, doc_file=filepath)
@@ -225,7 +225,7 @@ def fetch_media(request, filepath):
 		return FileResponse(file.doc_file)
 	else:
 		return HttpResponseForbidden()
-	
+
 def verify_fetch_media(request, filepath):
 	if request.user.is_staff:
 		return FileResponse(get_object_or_404(Document, doc_file=filepath).doc_file)
@@ -261,6 +261,7 @@ class IssueTicket(AuthView):
 	def get(request: HttpRequest):
 		ctx = {
 			'shareables': Shareable.objects.filter(owner=request.user.profile),
+			'targets': Profile.objects.exclude(user=request.user)
 		}
 		issued_to = get_clean_or_none(request.GET, 'issued_to')
 		if issued_to:
@@ -316,7 +317,7 @@ class MyTickets(AuthListView):
 
 class MyTicketsforBills(AuthListView):
 	template_name = "medimode/previousBills.html"
-
+	
 	def get_queryset(self):
 		Temp = Ticket.objects.filter(Q(issuer=self.request.user.profile))
 		cat = get_clean(self.request.GET, "issued_to")
@@ -327,7 +328,7 @@ class MyTicketsforBills(AuthListView):
 
 class TicketView(AuthDetailView):
 	template_name = "medimode/ticketDetail.html"
-	model=Ticket
+	model = Ticket
 	
 	@staticmethod
 	def post(request):
@@ -336,14 +337,15 @@ class TicketView(AuthDetailView):
 		
 		if _req and _money:
 			payer, paid = (1, 2)
-
+		
+		
+with open("medimode/models/cities.json") as _fl:
+	state_text = _fl.read()
 class Search(AuthTemplateView):
 	template_name = "medimode/search.html"
 	
 	def get_context_data(self, **kwargs):
 		ctx = super().get_context_data(**kwargs)
-		with open("medimode/models/cities.json") as fl:
-			state_text = fl.read()
 		ctx["state_json"] = state_text
 		ctx["state_dict"] = json.loads(state_text)
 		return ctx
@@ -361,5 +363,6 @@ class Search(AuthTemplateView):
 		entries_including = set([names_obj[x] for x in names_obj if entity_name in x])
 		
 		entries = list(entries_close | entries_including)
+		ctx = {"entries": entries, "state_json": state_text, "state_dict": json.loads(state_text)}
 		
-		return render(request, self.template_name, context={"entries": entries})
+		return render(request, self.template_name, context=ctx)
