@@ -14,6 +14,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView
+from django.contrib.auth import logout
 
 from medimode.models import Insurance, Hospital, Pharmacy, Doctor, Shareable, Ticket, Profile, Ticket_Shareable, \
 	Organisation, User, Patient, Document
@@ -25,6 +26,12 @@ from medimode.views_base import AuthTemplateView, AuthDetailView, AuthListView, 
 @method_decorator(ratelimit(key='post:username', rate='100/h', method='POST', block=True), name='post')
 class Login(LoginView):
 	next_page = reverse_lazy("medimode_index")
+
+class Logout(AuthView):
+	def get(self,request, **kwargs):
+		logout(request)
+		return redirect(reverse('login'))
+	# next_page = reverse_lazy("medimode_index")
 
 class SignupOrg(TemplateView):
 	template_name = "medimode/signup/org.html"
