@@ -171,7 +171,7 @@ class Documents(AdminView):
 		_pid = get_clean_int(json.loads(request.body), "profile_id")
 		_role = get_object_or_404(Profile, pk=_pid).user.role
 		prf = get_object_or_404(str_to_model(_role).objects.select_related('user__profile'), pk=_pid)
-		
+
 		docs = []
 		tosend = []
 		if _role == "doctor":
@@ -195,6 +195,8 @@ class RemoveUsers(AdminListView):
 	template_name = "medimode/reject_users.html"
 	model = Profile
 	
+	# TODO : Remove users from database not working
+
 	def get_queryset(self):
 		return Profile.objects.filter(approved=True)
 	
@@ -248,9 +250,37 @@ class DoctorView(AuthDetailView):
 
 class ProfileView(AuthDetailView):
 	model = Profile
-	
+
+	# TODO : Profile while viewing documents not working
+
 	def get_object(self, queryset=None):
 		return self.request.user.profile
+	
+	def get_context_data(self,**kwargs):
+		context = super().get_context_data()
+		context['role'] = self.request.user.role
+
+		role=self.request.user.role
+		prf=str_to_model(role).objects.get(user=self.request.user)
+		# get context data 
+
+		
+		docs = []
+		if role == "doctor":
+			docs.extend([("Proof of Identity", prf.proof_of_identity),
+									 ("Proof of Address", prf.proof_of_address),
+									 ("Medical License", prf.medical_license)])
+		elif role == "patient":
+			docs.extend([("Proof of Identity", prf.proof_of_identity),
+									 ("Proof of Address", prf.proof_of_address)])
+			if prf.medical_info is not None:
+				docs.append(("Medical Info", prf.medical_info))
+		else:
+			docs = []  # ([("Image 0", prf.image0), ("Image 1", prf.image1)])
+			# TODO: Image 0 and Image 1 fetching while admin approval
+		context['docs']=docs
+		return context
+
 
 class PharmacyView(AuthDetailView):
 	model = Pharmacy
