@@ -58,11 +58,10 @@ class SignupOrg(TemplateView):
 		_publicKey= get_clean(_post,'publicKey')
 		# check if public key is hexadecimal
 		if len(_publicKey)==42:
-			if _publicKey.isalnum():
-				if _publicKey.startswith('0x'):
-					pass
-				else:
-					raise ValidationError("Invalid public key provided")
+			if _publicKey.startswith('0x'):
+				for ch in _publicKey:
+					if ((ch < '0' or ch > '9') and (ch < 'A' or ch > 'F')):
+						raise ValidationError("Invalid public key provided")
 			else:
 				raise ValidationError("Invalid public key provided")
 		else:
@@ -110,11 +109,10 @@ class SignupIndividual(TemplateView):
 		_publicKey= get_clean(_post,'publicKey')
 		# check if public key is hexadecimal
 		if len(_publicKey)==42:
-			if _publicKey.isalnum():
-				if _publicKey.startswith('0x'):
-					pass
-				else:
-					raise ValidationError("Invalid public key provided")
+			if _publicKey.startswith('0x'):
+				for ch in _publicKey:
+					if ((ch < '0' or ch > '9') and (ch < 'A' or ch > 'F')):
+						raise ValidationError("Invalid public key provided")
 			else:
 				raise ValidationError("Invalid public key provided")
 		else:
@@ -164,11 +162,10 @@ class SignupDoctor(TemplateView):
 			_works_at=get_clean_int(_post,'works_at')
 		# check if public key is hexadecimal
 		if len(_publicKey)==42:
-			if _publicKey.isalnum():
-				if _publicKey.startswith('0x'):
-					pass
-				else:
-					raise ValidationError("Invalid public key provided")
+			if _publicKey.startswith('0x'):
+				for ch in _publicKey:
+					if ((ch < '0' or ch > '9') and (ch < 'A' or ch > 'F')):
+						raise ValidationError("Invalid public key provided")
 			else:
 				raise ValidationError("Invalid public key provided")
 		else:
