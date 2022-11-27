@@ -134,6 +134,7 @@ class SignupDoctor(TemplateView):
 		_model = Doctor.objects.create(user=_user, bio=_bio, proof_of_address=_poa,
 																	 proof_of_identity=_poi, medical_license=_med_doc)
 		return redirect(reverse('login'))
+		# TODO: Add Stripe Account properly for other views
 
 class ProfileView(AuthDetailView):
 	template_name = "medimode/_accounts/profile_detail.html"
@@ -167,3 +168,75 @@ class ProfileView(AuthDetailView):
 
 class OTPSeed(AuthTemplateView):
 	template_name = "medimode/_accounts/my_seed.html"
+
+class EditProfile(AuthTemplateView):
+	template_name="medimode/_accounts/edit_profile.html"
+
+	def get_context_data(self, **kwargs):
+		context = super().get_context_data()
+		user=self.request.user
+		role=user.role
+		prf=str_to_model(role).objects.get(user=user)
+		context['prf'] = prf
+
+		docs = []
+		if role == "doctor":
+			docs.extend([("Proof of Identity", prf.proof_of_identity),
+									 ("Proof of Address", prf.proof_of_address),
+									 ("Medical License", prf.medical_license)])
+		elif role == "patient":
+			docs.extend([("Proof of Identity", prf.proof_of_identity),
+									 ("Proof of Address", prf.proof_of_address)])
+			if prf.medical_info is not None:
+				docs.append(("Medical Info", prf.medical_info))
+		else:
+			docs = ([("Image 0", prf.image0), ("Image 1", prf.image1)])
+		context['docs']=docs
+
+		return context
+
+	def post(self, request, **kwargs):
+		_post = self.request.POST
+		_files = self.request.FILES
+		user=request.user
+		role=user.role
+		prf=str_to_model(role).objects.get(user=user)
+		_password=_post.get('password')
+		if _password is None:
+			_password=user.password
+		else:
+			_password = get_clean(_post, 'password')
+
+		_bio = _post.get('bio')
+		if _bio is None:
+			_bio=prf.bio
+		else:
+			_bio = get_clean(_post, 'bio')
+		
+		if role == "doctor":
+			_poa = get_document_or_none(_files, 'proof_of_address')
+			_poi = get_document_or_none(_files, 'proof_of_identity')
+			_med_doc = get_document_or_none(_files, 'medical_license')
+			if _med_doc is None:
+				_med_doc=prf.medical_license
+			prf.medical_license=_med_doc
+		if role == "patient":
+			_poa = get_document_or_none(_files, 'proof_of_address')
+			_poi = get_document_or_none(_files, 'proof_of_identity')
+			_med_doc = get_document_or_none(_files, 'medical_info')
+			if _med_doc is None:
+				_med_doc=prf.medical_license
+			prf.medical_info=_med_doc
+		
+		if _poa is None:
+			_poa=prf.proof_of_address
+		if _poi is None:
+			_poi=prf.proof_of_identity
+		prf.proof_of_address=_poa
+		prf.proof_of_identity=_poi
+		prf.save()
+		user.save()
+
+		return redirect(reverse('medimode_index'))
+
+

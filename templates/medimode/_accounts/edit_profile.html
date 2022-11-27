@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit</title>
+</head>
+<body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Editing Details</title>
+</head>
+<body>
+<form target="_self" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <table>
+        <tr>
+            <th><label for="id_password">Password:</label></th>
+            <td><input type="password" id="id_password" name="password"/></td>
+        </tr>
+
+        <tr>
+            <th><label for="id_bio">Bio:</label></th>
+            <td>
+                <textarea name="bio" cols="40" rows="10" maxlength="500" id="id_bio" value="{{ prf.bio }}"></textarea>
+            </td>
+        </tr>
+        {% for document in docs %}
+        <tr>
+            <a href="/medimode/media/private/{{ document.1.doc_file.name }}">{{ document.0 }}</a>
+        </tr>
+        {% endfor %}
+        <tr>
+            <th><label for="id_proof_of_identity">Proof of Identity:</label></th>
+            <td>
+                <input type="file" name="proof_of_identity" id="id_proof_of_identity">
+            </td>
+        </tr>
+
+        <tr>
+            <th><label for="id_proof_of_address">Proof of Address:</label></th>
+            <td>
+                <input type="file" name="proof_of_address" id="id_proof_of_address">
+            </td>
+        </tr>
+        {% if user.role == "patient" %}
+
+        <tr>
+            <th><label for="id_medical_documents">Medical Documents:</label></th>
+            <td>
+                <input type="file" name="medical_documents" id="id_medical_documents">
+            </td>
+        </tr>
+        {% endif %}
+        <tr>
+            <td><input type="submit" value="submit"/></td>
+        </tr>
+    </table>
+</form>
+</body>
+</html>
+</body>
+</html>

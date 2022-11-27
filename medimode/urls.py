@@ -10,4 +10,7 @@ urlpatterns = [
 	path('', views.Home.as_view(), name='medimode_index'),
 	path('my_documents', views.MyDocuments.as_view(), name='my_documents'),
 	path('share_document', views.ShareDocument.as_view(), name='share_document'),
+	
+
 ]
+

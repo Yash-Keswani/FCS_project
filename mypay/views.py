@@ -12,7 +12,9 @@ from FCS import settings
 from medimode.models import Transaction
 from mypay.models import Receipt
 
-stripe.api_key = os.getenv('stripe_api_key')
+# stripe.api_key = os.getenv("stripe_api_key")
+stripe.api_key = "sk_test_51LzGzTSHQQi3b7Cd6GE6vm8QwZKcpiGw031B5wxuJ8z9dvQ5NGFBxhrBpyi3mmBZ8vBLiPnIjp6htFbg2Dz45dsx00oa5DgphY"
+
 
 # Create your views here.
 class Home(TemplateView):

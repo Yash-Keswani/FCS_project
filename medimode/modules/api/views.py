@@ -13,9 +13,9 @@ class ProfileFileView(AuthView):
 		
 		docs = []
 		if role == "doctor":
-			docs.extend(prf.proof_of_identity, prf.proof_of_address, prf.medical_license)
+			docs.extend([prf.proof_of_identity, prf.proof_of_address, prf.medical_license])
 		elif role == "patient":
-			docs.extend(prf.proof_of_identity, prf.proof_of_address)
+			docs.extend([prf.proof_of_identity, prf.proof_of_address])
 			if prf.medical_info is not None:
 				docs.append(prf.medical_info)
 		else:

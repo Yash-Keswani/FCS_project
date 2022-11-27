@@ -10,4 +10,5 @@ urlpatterns = [
 	path('profile', views.ProfileView.as_view(), name='profile_details'),
 	path('my_stripe', views.MyStripe.as_view(), name='my_stripe'),
 	path('myseed', views.OTPSeed.as_view(), name='seed'),
+	path('edit_profile', views.EditProfile.as_view(), name='edit_profile'),
 ]
