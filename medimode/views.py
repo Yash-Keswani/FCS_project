@@ -21,13 +21,13 @@ class Home(AuthView):
 		if role == "patient":
 			return render(request, 'medimode/home.html')
 		elif role == "doctor":
-			return render(request, 'medimode/home.html')
+			return render(request, 'medimode/organisationHome.html')
 		elif role == "pharmacy":
-			return render(request, 'medimode/home.html')
+			return render(request, 'medimode/organisationHome.html')
 		elif role == "hospital":
-			return render(request, 'medimode/home.html')
+			return render(request, 'medimode/organisationHome.html')
 		elif role == "insurance":
-			return render(request, 'medimode/home.html')
+			return render(request, 'medimode/organisationHome.html')
 		else:
 			return render(request, 'medimode/home.html')
 
