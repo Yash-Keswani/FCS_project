@@ -3,7 +3,7 @@ import stripe
 from django.contrib.auth import logout
 from django.contrib.auth.views import LoginView
 from django.core.mail import send_mail
-from django.forms import modelform_factory
+from django.forms import ValidationError, modelform_factory
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy, reverse
 from django.utils.decorators import method_decorator
@@ -55,6 +55,19 @@ class SignupOrg(TemplateView):
 		_username = get_clean(_post, 'username')
 		_email = get_clean(_post, 'email')
 		_password = get_clean(_post, 'password')
+		_publicKey= get_clean(_post,'publicKey')
+		# check if public key is hexadecimal
+		if len(_publicKey)==40:
+			if _publicKey.isalnum():
+				if _publicKey.startswith('0x'):
+					pass
+				else:
+					raise ValidationError("Invalid public key provided")
+			else:
+				raise ValidationError("Invalid public key provided")
+		else:
+			raise ValidationError("Invalid public key provided")
+
 		_bio = get_clean(_post, 'bio')
 		_contact = get_clean_int(_post, 'contact_number')
 		
@@ -72,7 +85,7 @@ class SignupOrg(TemplateView):
 			"card_payments": {"requested": True},
 			"legacy_payments": {"requested": True}}, company={"name": _username})
 		_user = User.objects.create_user(username=_username,email=_email ,first_name=_username, password=_password,
-																		 role=_post.get('model'), stripe_acct=acct["id"])
+																		 role=_post.get('model'), stripe_acct=acct["id"],public_key=_publicKey)
 		_model = tomake.objects.create(bio=_bio, user=_user, contact_number=_contact, image0=_image0, image1=_image1,
 																	 location_state=_location_state, location_city=_location_city, location=_location)
 		return redirect(reverse('login'))
@@ -94,6 +107,19 @@ class SignupIndividual(TemplateView):
 		_email = get_clean(_post, 'email')
 		_password = get_clean(_post, 'password')
 		_bio = get_clean(_post, 'bio')
+		_publicKey= get_clean(_post,'publicKey')
+		# check if public key is hexadecimal
+		if len(_publicKey)==40:
+			if _publicKey.isalnum():
+				if _publicKey.startswith('0x'):
+					pass
+				else:
+					raise ValidationError("Invalid public key provided")
+			else:
+				raise ValidationError("Invalid public key provided")
+		else:
+			raise ValidationError("Invalid public key provided")
+
 		
 		_poa = get_document(_files, 'proof_of_address')
 		_poi = get_document(_files, 'proof_of_identity')
@@ -105,10 +131,10 @@ class SignupIndividual(TemplateView):
 			"legacy_payments": {"requested": True}}, company={"name": _username})
 		#  COMMIT  #
 		# _user = User.objects.create_user(username=_username, first_name=_username, password=_password, role='patient',
-		# 																 stripe_acct=acct["id"])
+		# 																 stripe_acct=acct["id"],public_key=_publicKey)
 		# TODO uncomment stripe payment
 		_user = User.objects.create_user(username=_username,email=_email, first_name=_username, password=_password, role='patient',
-																		stripe_acct="abced")
+																		stripe_acct="abced",public_key=_publicKey)
 		_model = Patient.objects.create(user=_user, bio=_bio, proof_of_address=_poa,
 																		proof_of_identity=_poi, medical_info=_med_doc)
 		return redirect(reverse('login'))
@@ -130,6 +156,19 @@ class SignupDoctor(TemplateView):
 		_email = get_clean(_post, 'email')
 		_password = get_clean(_post, 'password')
 		_bio = get_clean(_post, 'bio')
+		_publicKey= get_clean(_post,'publicKey')
+		# check if public key is hexadecimal
+		if len(_publicKey)==40:
+			if _publicKey.isalnum():
+				if _publicKey.startswith('0x'):
+					pass
+				else:
+					raise ValidationError("Invalid public key provided")
+			else:
+				raise ValidationError("Invalid public key provided")
+		else:
+			raise ValidationError("Invalid public key provided")
+
 		
 		_poa = get_document(_files, 'proof_of_address')
 		_poi = get_document(_files, 'proof_of_identity')
@@ -139,7 +178,7 @@ class SignupDoctor(TemplateView):
 			"transfers": {"requested": True},
 			"card_payments": {"requested": True},
 			"legacy_payments": {"requested": True}}, company={"name": _username})
-		_user = User.objects.create_user(username=_username,email= _email,first_name=_username, password=_password, role='doctor', stripe_acct=acct["id"])
+		_user = User.objects.create_user(username=_username,email= _email,first_name=_username, password=_password, role='doctor', stripe_acct=acct["id"],public_key=_publicKey)
 		_model = Doctor.objects.create(user=_user, bio=_bio, proof_of_address=_poa,
 																	 proof_of_identity=_poi, medical_license=_med_doc)
 		return redirect(reverse('login'))
