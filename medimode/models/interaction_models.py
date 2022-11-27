@@ -1,12 +1,18 @@
 from django.db import models
 from django.forms import ModelForm
 
-from medimode.models import Document, Profile
+from medimode.models import Document, Profile, User
+from medimode.models.doc_models import ask_blockchain
 
 class Shareable(Document):
 	owner = models.ForeignKey(to=Profile, on_delete=models.CASCADE, related_name='owned_shareables')
 	shared_with = models.ManyToManyField(to=Profile, related_name='can_access', blank=True)
 	
+	def get_owner_from_blockchain(self):
+		return self.owner.user
+		owner_public_key = ask_blockchain(self.doc_hash)
+		return User.objects.get(public_key=owner_public_key)
+
 class Transaction(models.Model):
 	sender = models.ForeignKey(to=Profile, on_delete=models.DO_NOTHING, related_name='sent_transactions')
 	receiver = models.ForeignKey(to=Profile, on_delete=models.DO_NOTHING, related_name='received_transactions')

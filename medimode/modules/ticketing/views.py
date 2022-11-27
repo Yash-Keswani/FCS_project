@@ -28,6 +28,29 @@ class MyTicketsforBills(AuthListView):
 		else:
 			return [x for x in Temp if x.issued.user.role == cat]
 
+class VerifyTicketDocument(AuthView):
+	"""This is necessary before recipient can attach documents to ticket or transaction can be created"""
+	
+	def post(self, request):
+		ticket_id = get_clean_int(request.POST, "ticket_id")
+		doc_id = get_clean_int(request.POST, "ticket_id")
+		target = get_object_or_404(Ticket, pk=ticket_id)
+		document = get_object_or_404(Shareable, pk=doc_id)
+		pass
+
+def verify_document(ticket, document: Shareable):
+	target_role = ticket.issued.user.role
+	if target_role == 'pharmacy':
+		return document.get_owner_from_blockchain().role == 'doctor'
+	elif target_role == 'hospital':
+		return document.get_owner_from_blockchain().role == 'doctor'
+	elif target_role == 'insurance':
+		return document.get_owner_from_blockchain().role == 'hospital'
+	return True
+
+def verify_ticket(ticket):
+	return any(verify_document(ticket, x) for x in ticket.shareables.all())
+	
 class TicketView(AuthDetailView):
 	template_name = "medimode/ticketing/ticketDetail.html"
 	model = Ticket
@@ -38,6 +61,8 @@ class TicketView(AuthDetailView):
 		tkt = get_object_or_404(Ticket, pk=_ticket_id)
 		if request.user.profile not in (tkt.issued, tkt.issuer):
 			raise ValidationError("Not your Ticket")
+		if not verify_ticket(tkt):
+			raise ValidationError("This ticket isn't verified")
 		
 		if request.POST.get("add_transaction"):
 			TicketView.attach_transaction(request, tkt)
@@ -96,8 +121,9 @@ class TicketView(AuthDetailView):
 class IssueTicket(AuthView):
 	@staticmethod
 	def get(request: HttpRequest):
+		q = Shareable.objects.filter(Q(shared_with=request.user.profile) | Q(owner=request.user.profile))
 		ctx = {
-			'shareables': Shareable.objects.filter(owner=request.user.profile),
+			'shareables': q,
 			'targets': Profile.objects.exclude(user=request.user)
 		}
 		issued_to = get_clean_or_none(request.GET, 'issued_to')
@@ -129,17 +155,18 @@ class IssueTicket(AuthView):
 			tkt_shareable.shared_with.add(_issued)
 			tkt_shareable.save()
 			tkt_shareables.append(tkt_shareable)
-		"""
-		_shareables = []
+			
 		if request.POST.get("shareables"):
-			_shareables = [Shareable.objects.get(pk=x) for x in request.POST.get("shareables")]
-		for shareable in _shareables:
-			tkt_shareable = Ticket_Shareable(shareable_ptr_id=shareable.id)
-			tkt_shareable.party = Ticket_Shareable.PARTY.ISSUER
-			tkt_shareable.save_base(raw=True)
-			tkt_shareable.shared_with.add(_issuer)
-			tkt_shareables.append(tkt_shareable)
-		"""
+			_shareables = [get_object_or_404(Shareable, pk=x) for x in request.POST.getlist("shareables")]
+			# TODO: only allow user to attach shareables that they have access to. dont attach same shareable twice
+			for shareable in _shareables:
+				tkt_shareable = Ticket_Shareable(shareable_ptr_id=shareable.id, id=shareable.id)
+				tkt_shareable.party = Ticket_Shareable.PARTY.ISSUER
+				tkt_shareable.save_base(raw=True)
+				tkt_shareable.shared_with.add(_issued)
+				tkt_shareable.save_base(raw=True)
+				tkt_shareables.append(tkt_shareable)
+			
 		tkt = Ticket.objects.create(issuer=_issuer, issued=_issued, description=_description)
 		tkt.shareables.add(*tkt_shareables)
 		tkt.save()

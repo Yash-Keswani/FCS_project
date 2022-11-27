@@ -1,6 +1,12 @@
 from django.db import models
 from hashlib import sha256
 
+def check_blockchain(d_hash):
+	return True
+
+def ask_blockchain(d_hash):
+	return "0x00"
+
 class Document(models.Model):
 	def delete(self, using=None, keep_parents=False):
 		self.doc_file.delete()
@@ -8,12 +14,7 @@ class Document(models.Model):
 		
 	@property
 	def verified(self):
-		with open(self.doc_file.path, mode='rb') as fd:
-			# owner_public_key = ask_blockchain(self.doc_hash)
-			self.doc_hash = sha256(fd.read()).hexdigest()  # remove this, hash on init
-			self.save()
-			return sha256(fd.read()).hexdigest() == self.doc_hash
-		# TODO: use blockchain here
+		return check_blockchain(self.doc_hash)
 	
 	# might become a field instead of a model
 	# Delete document when class using the document is deleted
