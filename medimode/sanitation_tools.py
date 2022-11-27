@@ -21,7 +21,7 @@ def verify_otp(request):
 
 def sanitise_doc(_doc_file):
 	filetype = magic.from_buffer(_doc_file.read(256)).lower()
-	accepted_types = ["pdf", "png", "jpeg"]
+	accepted_types = ["pdf", "png", "jpeg", "ascii text"]
 	if not any(filetype.startswith(x) for x in accepted_types):
 		raise ValidationError("Invalid file provided")
 	return _doc_file

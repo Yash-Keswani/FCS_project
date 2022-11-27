@@ -4,7 +4,7 @@ from django.forms import ModelForm
 from medimode.models import Document, Profile
 
 class Shareable(Document):
-	owner = models.ForeignKey(to=Profile, on_delete=models.DO_NOTHING, related_name='owned_shareables')
+	owner = models.ForeignKey(to=Profile, on_delete=models.CASCADE, related_name='owned_shareables')
 	shared_with = models.ManyToManyField(to=Profile, related_name='can_access', blank=True)
 	
 class Transaction(models.Model):

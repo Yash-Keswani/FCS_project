@@ -2,6 +2,7 @@ import json
 import stripe
 from django.contrib.auth import logout
 from django.contrib.auth.views import LoginView
+from django.core.mail import send_mail
 from django.forms import modelform_factory
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy, reverse
@@ -96,9 +97,10 @@ class SignupIndividual(TemplateView):
 		_poi = get_document(_files, 'proof_of_identity')
 		_med_doc = get_document_or_none(_files, 'medical_documents')
 		
-		acct = stripe.Account.create(type="custom", capabilities={
+		acct = stripe.Account.create(type="custom", business_type="company", capabilities={
 			"transfers": {"requested": True},
-			"card_payments": {"requested": True}})
+			"card_payments": {"requested": True},
+			"legacy_payments": {"requested": True}}, company={"name": _username})
 		#  COMMIT  #
 		_user = User.objects.create_user(username=_username, first_name=_username, password=_password, role='patient',
 																		 stripe_acct=acct["id"])
@@ -127,14 +129,14 @@ class SignupDoctor(TemplateView):
 		_poi = get_document(_files, 'proof_of_identity')
 		_med_doc = get_document(_files, 'medical_license')
 		
-		acct = stripe.Account.create(type="custom", capabilities={
+		acct = stripe.Account.create(type="custom", business_type="company", capabilities={
 			"transfers": {"requested": True},
-			"card_payments": {"requested": True}})
+			"card_payments": {"requested": True},
+			"legacy_payments": {"requested": True}}, company={"name": _username})
 		_user = User.objects.create_user(username=_username, first_name=_username, password=_password, role='doctor', stripe_acct=acct["id"])
 		_model = Doctor.objects.create(user=_user, bio=_bio, proof_of_address=_poa,
 																	 proof_of_identity=_poi, medical_license=_med_doc)
 		return redirect(reverse('login'))
-		# TODO: Add Stripe Account properly for other views
 
 class ProfileView(AuthDetailView):
 	template_name = "medimode/_accounts/profile_detail.html"
@@ -202,17 +204,18 @@ class EditProfile(AuthTemplateView):
 		role=user.role
 		prf=str_to_model(role).objects.get(user=user)
 		_password=_post.get('password')
-		if _password is None:
-			_password=user.password
+		if not _password:
+			_password = user.password
 		else:
 			_password = get_clean(_post, 'password')
 
 		_bio = _post.get('bio')
-		if _bio is None:
-			_bio=prf.bio
+		if not _bio:
+			_bio = prf.bio
 		else:
 			_bio = get_clean(_post, 'bio')
 		
+		_poa, _poi = None, None
 		if role == "doctor":
 			_poa = get_document_or_none(_files, 'proof_of_address')
 			_poi = get_document_or_none(_files, 'proof_of_identity')
@@ -225,7 +228,7 @@ class EditProfile(AuthTemplateView):
 			_poi = get_document_or_none(_files, 'proof_of_identity')
 			_med_doc = get_document_or_none(_files, 'medical_info')
 			if _med_doc is None:
-				_med_doc=prf.medical_license
+				_med_doc=prf.medical_info
 			prf.medical_info=_med_doc
 		
 		if _poa is None:
@@ -239,4 +242,14 @@ class EditProfile(AuthTemplateView):
 
 		return redirect(reverse('medimode_index'))
 
-
+@method_decorator(ratelimit(key='ip', rate='5/m', method='POST', block=True), name='get')
+@method_decorator(ratelimit(key='ip', rate='50/h', method='POST', block=True), name='get')
+class SendOTP(AuthView):
+	def get(self, request): # TODO: change to post
+		user = request.user
+		send_mail(
+			'Your OTP | Medimode Solutions',
+			f"Here's your OTP: {user.totp}",
+			'test.com',
+			[user.email]
+		)

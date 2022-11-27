@@ -53,20 +53,12 @@ class Individual(Profile):
 		super().delete()
 		self.proof_of_identity.delete()
 		self.proof_of_address.delete()
-		# TODO: delete shareable documents uploaded by user,
 	
 	proof_of_identity = models.OneToOneField(Document, on_delete=models.RESTRICT, related_name="poi_%(class)s")
 	proof_of_address = models.OneToOneField(Document, on_delete=models.RESTRICT, related_name="poa_%(class)s")
 	
 	class Meta:
 		abstract = True
-
-class Doctor(Individual):
-	def delete(self, using=None, keep_parents=False):
-		super().delete()
-		self.medical_license.delete()
-	
-	medical_license = models.OneToOneField(Document, on_delete=models.RESTRICT, related_name="owner_doctor")
 
 class Patient(Individual):
 	def delete(self, using=None, keep_parents=False):
@@ -106,3 +98,11 @@ class Insurance(Organisation):
 	
 	class Meta:
 		verbose_name_plural = "Insurance Firms"
+		
+class Doctor(Individual):
+	def delete(self, using=None, keep_parents=False):
+		super().delete()
+		self.medical_license.delete()
+	
+	medical_license = models.OneToOneField(Document, on_delete=models.RESTRICT, related_name="owner_doctor")
+	works_at = models.ForeignKey(Hospital, on_delete=models.RESTRICT, related_name="worker_doctor", null=True)
