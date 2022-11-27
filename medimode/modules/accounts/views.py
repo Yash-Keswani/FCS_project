@@ -129,7 +129,6 @@ class SignupIndividual(TemplateView):
 		#  COMMIT  #
 		# _user = User.objects.create_user(username=_username, first_name=_username, password=_password, role='patient',
 		# 																 stripe_acct=acct["id"],public_key=_publicKey)
-		# TODO uncomment stripe payment
 		_user = User.objects.create_user(username=_username, email=_email, first_name=_username, password=_password,
 																		 role='patient',
 																		 stripe_acct="abced", public_key=_publicKey)
