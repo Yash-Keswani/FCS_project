@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -45,7 +46,8 @@
 				<th>Attached Documents:</th>
 				<td>
 					{% for doc in object.shareables.all %}
-						<a target="_blank" href="/medimode/media/verify/{{ doc.doc_file.name }}">{{ doc.filename }}</a>
+						<a target="_blank" href="/medimode/media/verify/{{ doc.doc_file.name }}">{{ doc.filename }}</a> -
+						<button type="button" id="{{ doc.pk }}" name="{{ doc.owner.user.public_key }}" onclick="verify_document('{{ doc.pk }}', '/medimode/media/verify/{{ doc.doc_file.name }}')">Verify</button> - uploader: {{ doc.owner.user.public_key }} ( {{ doc.owner.full_name }})<br>
 					{% endfor %}
 				</td>
 			</tr>
@@ -53,10 +55,47 @@
 		<tr>
 			<td><input type="file" name="doc_files" id="id_doc_files" value="Upload Documents"/><br></td>
 			<td>
-				<button type="submit" id="id_attach_doc" name="attach_doc" value="Attach">Attach</button>
+				<button type="submit" hidden id="id_attach_doc" name="attach_doc" value="Attach">Attach</button>
+				<button type="button" value="transaction" id="dummy">Attach Files</button>
 			</td>
 		</tr>
 	</table>
 </form>
+<script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"
+        type="application/javascript"></script>
+<script>
+    const CONTRACT_ADDR = "0xA73a358449Dd178C45d69dEc954E10361a6a6059"
+    const PROVIDER = new ethers.providers.AlchemyProvider("goerli", "J515gryHHGjksvLy6t6l0_VTwRSdEsJJ")
+    const provider = new ethers.providers.Web3Provider(window.ethereum)
+    document.getElementById("dummy").onclick = async () => {await put_file_on_blockchain();}
+
+    async function verify_document(pk, filename){
+        await provider.send("eth_requestAccounts", []);
+        const ABI = await fetch("{% static 'abi.json' %}").then(response => response.json()).then(data => {return(data)})
+        const contract = new ethers.Contract(CONTRACT_ADDR, ABI, PROVIDER)
+
+		    text = await fetch(filename).then(response => response.body.getReader().read()).then(data => data.value)
+        const _hash = ethers.utils.sha256(text)
+        owner = await contract.getHashOwner(_hash)
+		    alert(owner === document.getElementById(pk).name)
+    }
+
+		async function put_file_on_blockchain(){
+        await provider.send("eth_requestAccounts", []);
+        const signer = provider.getSigner()
+        const ABI = await fetch("{% static 'abi.json' %}").then(response => response.json()).then(data => {return(data)})
+        const contract = new ethers.Contract(CONTRACT_ADDR, ABI, PROVIDER).connect(signer)
+
+        const myfile = document.getElementById('id_doc_files').files[0];
+				text = await new Promise((resolve) => {
+        let fileReader = new FileReader();
+        fileReader.onload = (e) => resolve(fileReader.result);
+        fileReader.readAsText(myfile);
+				});
+        const _hash = ethers.utils.sha256(ethers.utils.toUtf8Bytes(text))
+				await contract.depositHash(_hash)
+				document.getElementById("id_attach_doc").click()
+		}
+</script>
 </body>
 </html>

@@ -13,6 +13,12 @@ class Document(models.Model):
 		super().delete()
 		
 	@property
+	def doc_hash(self):
+		with open(self.doc_file.path, mode='rb') as fl:
+			doc_hash = sha256(fl.read())
+		return doc_hash
+	
+	@property
 	def verified(self):
 		return check_blockchain(self.doc_hash)
 	
@@ -20,7 +26,6 @@ class Document(models.Model):
 	# Delete document when class using the document is deleted
 	# Document validation can be performed
 	doc_file = models.FileField(upload_to='uploads/documents')
-	doc_hash = models.CharField(max_length=256, default='')
 	filename = models.CharField(max_length=100)
 
 	def __str__(self):

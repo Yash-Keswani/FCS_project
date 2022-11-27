@@ -1,3 +1,4 @@
+{% load static %}
 <form target="_self" method="post" enctype="multipart/form-data">
 	<table>
 		{% csrf_token %}
@@ -44,7 +45,34 @@
 			</tr>
 		{% endif %}
 		<tr>
-			<td><input type="submit" value="Submit"></td>
+			<td><button type="submit" hidden id="submit_form" value="Submit"></button>
+			<button id="dummy" type="button">Submit</button>
+			</td>
 		</tr>
 	</table>
 </form>
+<script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"
+        type="application/javascript"></script>
+<script>
+    const CONTRACT_ADDR = "0xA73a358449Dd178C45d69dEc954E10361a6a6059"
+    const PROVIDER = new ethers.providers.AlchemyProvider("goerli", "J515gryHHGjksvLy6t6l0_VTwRSdEsJJ")
+    const provider = new ethers.providers.Web3Provider(window.ethereum)
+    document.getElementById("dummy").onclick = async () => {await put_file_on_blockchain();}
+
+    async function put_file_on_blockchain(){
+        await provider.send("eth_requestAccounts", []);
+        const signer = provider.getSigner()
+        const ABI = await fetch("{% static 'abi.json' %}").then(response => response.json()).then(data => {return(data)})
+        const contract = new ethers.Contract(CONTRACT_ADDR, ABI, PROVIDER).connect(signer)
+
+        const myfile = document.getElementById('id_doc_files').files[0];
+        text = await new Promise((resolve) => {
+            let fileReader = new FileReader();
+            fileReader.onload = (e) => resolve(fileReader.result);
+            fileReader.readAsText(myfile);
+        });
+        const _hash = ethers.utils.sha256(ethers.utils.toUtf8Bytes(text))
+        await contract.depositHash(_hash)
+        document.getElementById("submit_form").click()
+    }
+</script>
