@@ -28,6 +28,16 @@
         </tr>
 
         <tr>
+            <th><label for="id_works_at">Works at</th>
+
+            <td><select name="cars" id="cars">
+                 {% for hospital in hospitals %}
+                    <option value="{{ hospital.pk }}">{{ hospital.full_name }}</option>
+                {% endfor %}
+              </select></td>
+        </tr>
+
+        <tr>
             <th><label for="id_bio">Bio:</label></th>
             <td>
                 <textarea name="bio" cols="40" rows="10" maxlength="500" id="id_bio"></textarea>

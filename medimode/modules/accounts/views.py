@@ -10,7 +10,7 @@ from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 from ratelimit.decorators import ratelimit
 
-from medimode.models import User, Patient, Organisation, Doctor, Profile
+from medimode.models import User, Patient, Organisation, Doctor, Profile,Hospital
 from medimode.sanitation_tools import get_clean, get_document, get_clean_int, str_to_model, get_document_or_none
 from medimode.views_base import AuthView, AuthDetailView, AuthTemplateView
 
@@ -145,7 +145,7 @@ class SignupDoctor(TemplateView):
 	@staticmethod
 	def get(request, **kwargs):
 		return render(request, 'medimode/_accounts/doctor.html',
-									{"form": modelform_factory(Doctor, exclude=[])})
+		{"form": modelform_factory(Doctor, exclude=[]),"hospitals": Hospital.objects.all()})
 	
 	def post(self, request):
 		_post = self.request.POST
@@ -157,6 +157,11 @@ class SignupDoctor(TemplateView):
 		_password = get_clean(_post, 'password')
 		_bio = get_clean(_post, 'bio')
 		_publicKey= get_clean(_post,'publicKey')
+		_works_at = _post.get('works_at')
+		if not _works_at:
+			_works_at=None
+		else:
+			_works_at=get_clean_int(_post,'works_at')
 		# check if public key is hexadecimal
 		if len(_publicKey)==40:
 			if _publicKey.isalnum():
@@ -180,7 +185,7 @@ class SignupDoctor(TemplateView):
 			"legacy_payments": {"requested": True}}, company={"name": _username})
 		_user = User.objects.create_user(username=_username,email= _email,first_name=_username, password=_password, role='doctor', stripe_acct=acct["id"],public_key=_publicKey)
 		_model = Doctor.objects.create(user=_user, bio=_bio, proof_of_address=_poa,
-																	 proof_of_identity=_poi, medical_license=_med_doc)
+																	 proof_of_identity=_poi, medical_license=_med_doc, works_at=_works_at)
 		return redirect(reverse('login'))
 
 class ProfileView(AuthDetailView):
