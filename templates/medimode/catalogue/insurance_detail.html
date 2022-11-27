@@ -4,9 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <title>Insurance Firm Information</title>
+    <link href="{% static 'home.css' %}" rel="stylesheet" />
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
 </head>
 <body>
+    {% include 'navbar.html' %}
 <h2 class="text-center">{{ object.full_name | safe}}</h2>
 <p>Contact Us at: {{ object.contact_number | safe}}</p>
 <p>About Us: {{ object.bio | safe}}</p>

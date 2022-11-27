@@ -8,6 +8,7 @@
     <link href="{% static 'home.css' %}" rel="stylesheet" />
 </head>
 <body>
+    {% include 'navbar.html' %}
     {% block content %}
     <h2 class="text-center">{{ model_plural }}</h2>
     <br>

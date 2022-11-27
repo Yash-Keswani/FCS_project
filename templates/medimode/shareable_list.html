@@ -3,8 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>My Document</title>
+    <link href="{% static 'home.css' %}" rel="stylesheet" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
 </head>
 <body>
+    {% include 'navbar.html' %}
 {% block content %}
     <ul>
         {% for document in object_list %}
