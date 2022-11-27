@@ -96,12 +96,16 @@ class SignupIndividual(TemplateView):
 		_poi = get_document(_files, 'proof_of_identity')
 		_med_doc = get_document_or_none(_files, 'medical_documents')
 		
-		acct = stripe.Account.create(type="custom", capabilities={
-			"transfers": {"requested": True},
-			"card_payments": {"requested": True}})
+		# acct = stripe.Account.create(type="custom", capabilities={
+		# 	"transfers": {"requested": True},
+		# 	"card_payments": {"requested": True}})
+		# TODO uncomment stripe payment
 		#  COMMIT  #
+		# _user = User.objects.create_user(username=_username, first_name=_username, password=_password, role='patient',
+		# 																 stripe_acct=acct["id"])
+		# TODO uncomment stripe payment
 		_user = User.objects.create_user(username=_username, first_name=_username, password=_password, role='patient',
-																		 stripe_acct=acct["id"])
+																		stripe_acct="abced")
 		_model = Patient.objects.create(user=_user, bio=_bio, proof_of_address=_poa,
 																		proof_of_identity=_poi, medical_info=_med_doc)
 		return redirect(reverse('login'))
@@ -206,12 +210,15 @@ class EditProfile(AuthTemplateView):
 			_password=user.password
 		else:
 			_password = get_clean(_post, 'password')
+			user.set_password(_password)
+			
 
 		_bio = _post.get('bio')
 		if _bio is None:
 			_bio=prf.bio
 		else:
 			_bio = get_clean(_post, 'bio')
+		prf.bio=_bio
 		
 		if role == "doctor":
 			_poa = get_document_or_none(_files, 'proof_of_address')
@@ -225,7 +232,7 @@ class EditProfile(AuthTemplateView):
 			_poi = get_document_or_none(_files, 'proof_of_identity')
 			_med_doc = get_document_or_none(_files, 'medical_info')
 			if _med_doc is None:
-				_med_doc=prf.medical_license
+				_med_doc=prf.medical_info
 			prf.medical_info=_med_doc
 		
 		if _poa is None:
