@@ -52,6 +52,7 @@ class SignupOrg(TemplateView):
 		_post = self.request.POST
 		_files = self.request.FILES
 		_username = get_clean(_post, 'username')
+		_email = get_clean(_post, 'email')
 		_password = get_clean(_post, 'password')
 		_bio = get_clean(_post, 'bio')
 		_contact = get_clean_int(_post, 'contact_number')
@@ -69,7 +70,7 @@ class SignupOrg(TemplateView):
 			"transfers": {"requested": True},
 			"card_payments": {"requested": True},
 			"legacy_payments": {"requested": True}}, company={"name": _username})
-		_user = User.objects.create_user(username=_username, first_name=_username, password=_password,
+		_user = User.objects.create_user(username=_username,email=_email ,first_name=_username, password=_password,
 																		 role=_post.get('model'), stripe_acct=acct["id"])
 		_model = tomake.objects.create(bio=_bio, user=_user, contact_number=_contact, image0=_image0, image1=_image1,
 																	 location_state=_location_state, location_city=_location_city, location=_location)
@@ -89,6 +90,7 @@ class SignupIndividual(TemplateView):
 		
 		#  COLLECTION  #
 		_username = get_clean(_post, 'username')
+		_email = get_clean(_post, 'email')
 		_password = get_clean(_post, 'password')
 		_bio = get_clean(_post, 'bio')
 		
@@ -104,7 +106,7 @@ class SignupIndividual(TemplateView):
 		# _user = User.objects.create_user(username=_username, first_name=_username, password=_password, role='patient',
 		# 																 stripe_acct=acct["id"])
 		# TODO uncomment stripe payment
-		_user = User.objects.create_user(username=_username, first_name=_username, password=_password, role='patient',
+		_user = User.objects.create_user(username=_username,email=_email, first_name=_username, password=_password, role='patient',
 																		stripe_acct="abced")
 		_model = Patient.objects.create(user=_user, bio=_bio, proof_of_address=_poa,
 																		proof_of_identity=_poi, medical_info=_med_doc)
@@ -124,6 +126,7 @@ class SignupDoctor(TemplateView):
 		
 		#  COLLECTION  #
 		_username = get_clean(_post, 'username')
+		_email = get_clean(_post, 'email')
 		_password = get_clean(_post, 'password')
 		_bio = get_clean(_post, 'bio')
 		
@@ -134,7 +137,7 @@ class SignupDoctor(TemplateView):
 		acct = stripe.Account.create(type="custom", capabilities={
 			"transfers": {"requested": True},
 			"card_payments": {"requested": True}})
-		_user = User.objects.create_user(username=_username, first_name=_username, password=_password, role='doctor', stripe_acct=acct["id"])
+		_user = User.objects.create_user(username=_username,email= _email,first_name=_username, password=_password, role='doctor', stripe_acct=acct["id"])
 		_model = Doctor.objects.create(user=_user, bio=_bio, proof_of_address=_poa,
 																	 proof_of_identity=_poi, medical_license=_med_doc)
 		return redirect(reverse('login'))
@@ -206,15 +209,21 @@ class EditProfile(AuthTemplateView):
 		role=user.role
 		prf=str_to_model(role).objects.get(user=user)
 		_password=_post.get('password')
-		if _password is None:
+		if not _password:
 			_password=user.password
 		else:
 			_password = get_clean(_post, 'password')
 			user.set_password(_password)
-			
+
+		_email = _post.get('email')
+		if not _email:
+			_email=user.email
+		else:
+			_email = get_clean(_post, 'email')
+			user.email=_email
 
 		_bio = _post.get('bio')
-		if _bio is None:
+		if not _bio:
 			_bio=prf.bio
 		else:
 			_bio = get_clean(_post, 'bio')
