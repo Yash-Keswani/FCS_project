@@ -1,10 +1,14 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
 	<title>Search Locations</title>
+	<link href="{% static 'home.css' %}" rel="stylesheet" />
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
 </head>
 <body>
+	{% include 'navbar.html' %}
 <form target="_self" method="post" id="submitme" onsubmit="form_submit();return false">
 	{% csrf_token %}
 	<select name="category" id="id_category" required>

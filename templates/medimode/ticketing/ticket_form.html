@@ -1,4 +1,7 @@
 {% load static %}
+<link href="{% static 'home.css' %}" rel="stylesheet" />
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+{% include 'navbar.html' %}
 <form target="_self" method="post" enctype="multipart/form-data">
 	<table>
 		{% csrf_token %}

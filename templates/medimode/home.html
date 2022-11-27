@@ -12,50 +12,6 @@
     <link href="{% static 'home.css' %}" rel="stylesheet" />
 </head>
 <body>
-    
-    <div class="navbar">
-        <img height="60px" src="{% static 'log.png' %}">    
-        <div class="centre">
-            
-        <div class="Options">
-            <a href="/medimode/catalogue/hospital">Hospitals </a>
-            <a href="/medimode/catalogue/doctor">Doctors</a>
-            <a href="/medimode/catalogue/insurance">Insurance</a>
-            <a href="/medimode/catalogue/pharmacy">Pharmacies</a>
-            <a href="/medimode/search">Search for entities</a>
-        </div>
-        </div>
-        <div class="Profile">
-            
-            <div class="menu-toggle">
-                <button class="shit"></button> 
-                <img height="50px" src="https://i.pinimg.com/564x/a6/d5/b4/a6d5b418cbbd6665511833ec139e7aa7.jpg">
-            </div>
-
-            <aside class="sidebar">
-                <h3>Menu</h3>
-                
-                <nav class="menu">
-                    <a href="./" class="menu-item is-active">Home</a>
-                    <a href="/medimode/profile" class="menu-item">Profile</a>
-                    <a href="/medimode/edit_profile" class="menu-item">Account Management</a>
-                    <a href="/medimode/logout" class="menu-item">Logout</a>
-                    
-                </nav>
-    
-            </aside>
-
-            <script>
-                const menu_toggle = document.querySelector('.menu-toggle');
-                const sidebar = document.querySelector('.sidebar');
-        
-                menu_toggle.addEventListener('click', () => {
-                    menu_toggle.classList.toggle('is-active');
-                    sidebar.classList.toggle('is-active');
-                });
-            </script>
-            <!-- <h1>{{object.user.full_name}}</h1> -->
-        </div>    
-    </div>
+    {% include 'navbar.html' %}
 </body>
 </html>

@@ -3,10 +3,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <link href="{% static 'home.css' %}" rel="stylesheet" />
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
     <title>Profile</title>
 </head>
 <body>
+    {% include 'navbar.html' %}
 <h2 class="text-center">{{ object.full_name }}</h2>
 <p>About Us: {{ object.bio }}</p>
 <p>Email: {{ user.email }}</p>

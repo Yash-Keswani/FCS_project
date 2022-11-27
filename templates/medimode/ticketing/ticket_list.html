@@ -3,8 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>Your Tickets</title>
+    <link href="{% static 'home.css' %}" rel="stylesheet" />
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
 </head>
 <body>
+    {% include 'navbar.html' %}
 <ul>
     {% for ticket in object_list %}
         <li><a href="/medimode/ticket/{{ ticket.id }}">From {{ ticket.issuer.full_name }} - {{ ticket.description }}</a>
