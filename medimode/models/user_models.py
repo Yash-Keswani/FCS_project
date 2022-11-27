@@ -28,6 +28,7 @@ class User(AbstractUser):
 	role = models.TextField(choices=UserRoleChoices.choices, null=True)
 	OTP_seed = encrypt(models.TextField(default=gen_otpseed))
 	stripe_acct = models.TextField(max_length=100, blank=True)
+	public_key = models.TextField(max_length=100, blank=True)
 	
 	@property
 	def profile(self):
