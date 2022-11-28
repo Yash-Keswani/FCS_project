@@ -64,7 +64,7 @@ class TicketView(AuthDetailView):
 		if not verify_ticket(tkt):
 			raise ValidationError("This ticket isn't verified")
 		
-		if request.POST.get("add_transaction"):
+		if request.POST.get("add_transaction") and request.user.role != "patient":
 			TicketView.attach_transaction(request, tkt)
 		elif request.POST.get("attach_doc"):
 			TicketView.attach_document(request, tkt)

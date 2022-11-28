@@ -57,14 +57,8 @@ class SignupOrg(TemplateView):
 		_password = get_clean(_post, 'password')
 		_publicKey = get_clean(_post, 'publicKey')
 		# check if public key is hexadecimal
-		if len(_publicKey) == 42:
-			if _publicKey.startswith('0x'):
-				for ch in _publicKey:
-					if ((ch < '0' or ch > '9') and (ch < 'A' or ch > 'F')):
-						raise ValidationError("Invalid public key provided")
-			else:
-				raise ValidationError("Invalid public key provided")
-		else:
+		if not (len(_publicKey) == 42 and _publicKey.startswith('0x')
+				and all('9' > ch > '0' or 'F' > ch > 'A' for ch in _publicKey)):
 			raise ValidationError("Invalid public key provided")
 		
 		_bio = get_clean(_post, 'bio')
@@ -108,14 +102,8 @@ class SignupIndividual(TemplateView):
 		_bio = get_clean(_post, 'bio')
 		_publicKey = get_clean(_post, 'publicKey')
 		# check if public key is hexadecimal
-		if len(_publicKey) == 42:
-			if _publicKey.startswith('0x'):
-				for ch in _publicKey[2:]:
-					if ((ch < '0' or ch > '9') and (ch < 'A' or ch > 'F') and (ch < 'a' or ch > 'f')):
-						raise ValidationError("Invalid public key provided")
-			else:
-				raise ValidationError("Invalid public key provided")
-		else:
+		if not (len(_publicKey) == 42 and _publicKey.startswith('0x')
+						and all('9' > ch > '0' or 'F' > ch > 'A' for ch in _publicKey)):
 			raise ValidationError("Invalid public key provided")
 		
 		_poa = get_document(_files, 'proof_of_address')
@@ -126,12 +114,8 @@ class SignupIndividual(TemplateView):
 			"transfers": {"requested": True},
 			"card_payments": {"requested": True},
 			"legacy_payments": {"requested": True}}, company={"name": _username})
-		#  COMMIT  #
-		# _user = User.objects.create_user(username=_username, first_name=_username, password=_password, role='patient',
-		# 																 stripe_acct=acct["id"],public_key=_publicKey)
-		_user = User.objects.create_user(username=_username, email=_email, first_name=_username, password=_password,
-																		 role='patient',
-																		 stripe_acct="abced", public_key=_publicKey)
+		_user = User.objects.create_user(username=_username, first_name=_username, password=_password, role='patient',
+		 																 stripe_acct=acct["id"],public_key=_publicKey)
 		_model = Patient.objects.create(user=_user, bio=_bio, proof_of_address=_poa,
 																		proof_of_identity=_poi, medical_info=_med_doc)
 		return redirect(reverse('login'))
@@ -160,14 +144,8 @@ class SignupDoctor(TemplateView):
 		else:
 			_works_at = get_clean_int(_post, 'works_at')
 		# check if public key is hexadecimal
-		if len(_publicKey) == 42:
-			if _publicKey.startswith('0x'):
-				for ch in _publicKey[2:]:
-					if ((ch < '0' or ch > '9') and (ch < 'A' or ch > 'F') and (ch < 'a' or ch > 'f')):
-						raise ValidationError("Invalid public key provided")
-			else:
-				raise ValidationError("Invalid public key provided")
-		else:
+		if not (len(_publicKey) == 42 and _publicKey.startswith('0x')
+						and all('9' > ch > '0' or 'F' > ch > 'A' for ch in _publicKey)):
 			raise ValidationError("Invalid public key provided")
 		
 		_poa = get_document(_files, 'proof_of_address')

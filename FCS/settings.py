@@ -25,7 +25,8 @@ INSTALLED_APPS = [
 	'django.contrib.messages',
 	'django.contrib.staticfiles',
 	'medimode.apps.MedimodeConfig',
-	'mypay.apps.MypayConfig'
+	'mypay.apps.MypayConfig',
+	'django_cleanup.apps.CleanupConfig',
 ]
 
 MIDDLEWARE = [

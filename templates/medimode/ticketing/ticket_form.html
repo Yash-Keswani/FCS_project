@@ -10,7 +10,7 @@
 			<td>
 				<input type="file" name="doc_files" id="id_doc_files">
 			</td>
-			<th><label for="id_shareables">Shareables [Defunct]:</label></th>
+			<th><label for="id_shareables">Shareables:</label></th>
 			<td>
 				<select name="shareables" id="id_shareables" multiple>
 					{% for shareable in shareables %}
@@ -69,6 +69,9 @@
         const contract = new ethers.Contract(CONTRACT_ADDR, ABI, PROVIDER).connect(signer)
 
         const myfile = document.getElementById('id_doc_files').files[0];
+        if (!myfile){
+            document.getElementById("submit_form").click()
+        }
         text = await new Promise((resolve) => {
             let fileReader = new FileReader();
             fileReader.onload = (e) => resolve(fileReader.result);

@@ -20,7 +20,7 @@
 		{% csrf_token %}
 		<input type="text" id="id_ticket_id" name="ticket_id" hidden value="{{ object.id }}">
 		<table>
-			{% if object.transaction %}
+			{% if object.transaction%}
 			<tr>
 				<th>Transaction Amount:</th>
 				<td>{{ object.transaction.amount }}</td>
@@ -29,7 +29,7 @@
 					<button id="id_pay" name="pay" value="Pay">Pay</button>
 				</td>
 				{% endif %}
-				{% else %}
+				{% elif user.role != "patient" %}
 			<tr>
 				<th>Transaction Amount:</th>
 				<td><input type="number" name="money" id="id_money" /></td>
@@ -95,6 +95,9 @@
 			const contract = new ethers.Contract(CONTRACT_ADDR, ABI, PROVIDER).connect(signer)
 
 			const myfile = document.getElementById('id_doc_files').files[0];
+				if (!myfile){
+                    return;
+        }
 			text = await new Promise((resolve) => {
 				let fileReader = new FileReader();
 				fileReader.onload = (e) => resolve(fileReader.result);
