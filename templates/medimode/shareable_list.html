@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,8 +14,9 @@
         {% for document in object_list %}
             <li>{{ document.filename }} -
                 <a href="/medimode/media/verify/{{ document.doc_file.name }}">Fetch</a>
-                <a href="/medimode/media/{{ document.doc_file.name }}">Fetch (Unverified)</a>
+	            {% if document.owner == user.profile %}
                 <a href="/medimode/media/delete/{{ document.doc_file.name }}">Delete</a>
+              {% endif %}
             </li>
         {% endfor %}
     </ul>

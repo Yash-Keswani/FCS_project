@@ -35,7 +35,6 @@ class MyTicketsOrg(AuthListView):
 	def get_queryset(self):
 		return Ticket.objects.filter(Q(issued=self.request.user.profile) | Q(issuer=self.request.user.profile))
 
-
 class MyDocuments(AuthListView):
 	model = Shareable
 	

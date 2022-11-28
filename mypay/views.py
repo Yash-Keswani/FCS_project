@@ -33,7 +33,7 @@ def transaction_success(request):
 		trn = Transaction.objects.get(id=t_i["t_id"])
 		trn.completed = True
 		trn.save()
-		return render(request, 'mypay/success.html')
+		return redirect(reverse('my_tickets'))
 
 def transaction_failure(request):
 	token = request.GET.get("token")
