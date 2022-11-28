@@ -55,6 +55,12 @@ class TicketView(AuthDetailView):
 	template_name = "medimode/ticketing/ticketDetail.html"
 	model = Ticket
 	
+	def get_object(self, queryset=None):
+		tkt = super().get_object()
+		if self.request.user.profile not in (tkt.issued, tkt.issuer):
+			raise ValidationError("Not your Ticket")
+		return tkt
+		
 	@staticmethod
 	def post(request, pk, *args, **kwargs):
 		_ticket_id = get_clean_int(request.POST, "ticket_id")

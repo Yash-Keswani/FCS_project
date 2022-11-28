@@ -58,7 +58,7 @@ class SignupOrg(TemplateView):
 		_publicKey = get_clean(_post, 'publicKey')
 		# check if public key is hexadecimal
 		if not (len(_publicKey) == 42 and _publicKey.startswith('0x')
-				and all('9' > ch > '0' or 'F' > ch > 'A' for ch in _publicKey)):
+				and all('9' >= ch >= '0' or 'F' >= ch >= 'A' or 'f' >= ch >= 'a' for ch in _publicKey[2:])):
 			raise ValidationError("Invalid public key provided")
 		
 		_bio = get_clean(_post, 'bio')
@@ -81,7 +81,7 @@ class SignupOrg(TemplateView):
 																		 role=_post.get('model'), stripe_acct=acct["id"], public_key=_publicKey)
 		_model = tomake.objects.create(bio=_bio, user=_user, contact_number=_contact, image0=_image0, image1=_image1,
 																	 location_state=_location_state, location_city=_location_city, location=_location)
-		return redirect(reverse('login'))
+		return render(request, template_name="medimode/_accounts/my_seed.html", context={"t_user": _user})
 
 class SignupIndividual(TemplateView):
 	template_name = "medimode/_accounts/individual.html"
@@ -103,7 +103,7 @@ class SignupIndividual(TemplateView):
 		_publicKey = get_clean(_post, 'publicKey')
 		# check if public key is hexadecimal
 		if not (len(_publicKey) == 42 and _publicKey.startswith('0x')
-						and all('9' > ch > '0' or 'F' > ch > 'A' for ch in _publicKey)):
+						and all('9' >= ch >= '0' or 'F' >= ch >= 'A' or 'f' >= ch >= 'a' for ch in _publicKey[2:])):
 			raise ValidationError("Invalid public key provided")
 		
 		_poa = get_document(_files, 'proof_of_address')
@@ -118,7 +118,7 @@ class SignupIndividual(TemplateView):
 		 																 stripe_acct=acct["id"],public_key=_publicKey)
 		_model = Patient.objects.create(user=_user, bio=_bio, proof_of_address=_poa,
 																		proof_of_identity=_poi, medical_info=_med_doc)
-		return redirect(reverse('login'))
+		return render(request, template_name="medimode/_accounts/my_seed.html", context={"t_user": _user})
 
 class SignupDoctor(TemplateView):
 	template_name = "medimode/_accounts/doctor.html"
@@ -145,7 +145,7 @@ class SignupDoctor(TemplateView):
 			_works_at = get_clean_int(_post, 'works_at')
 		# check if public key is hexadecimal
 		if not (len(_publicKey) == 42 and _publicKey.startswith('0x')
-						and all('9' > ch > '0' or 'F' > ch > 'A' for ch in _publicKey)):
+						and all('9' > ch > '0' or 'F' > ch > 'A' or 'f' > ch > 'a' for ch in _publicKey[2:])):
 			raise ValidationError("Invalid public key provided")
 		
 		_poa = get_document(_files, 'proof_of_address')
@@ -160,7 +160,7 @@ class SignupDoctor(TemplateView):
 																		 role='doctor', stripe_acct=acct["id"], public_key=_publicKey)
 		_model = Doctor.objects.create(user=_user, bio=_bio, proof_of_address=_poa,
 																	 proof_of_identity=_poi, medical_license=_med_doc, works_at=_works_at)
-		return redirect(reverse('login'))
+		return render(request, template_name="medimode/_accounts/my_seed.html", context={"t_user": _user})
 
 class ProfileView(AuthDetailView):
 	template_name = "medimode/_accounts/profile_detail.html"
