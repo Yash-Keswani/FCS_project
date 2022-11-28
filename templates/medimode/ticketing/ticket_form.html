@@ -29,7 +29,7 @@
 		<tr>
 			<th><label for="id_otp">OTP:</label></th>
 			<td>
-				<input type="number" name="otp" required id="id_otp"/>
+				{% include 'vkey.html' %}
 			</td>
 			<input type="hidden" id="id_ticket_id" name="ticket_id" value="{{ ticket_id }}"/>
 		</tr>

@@ -51,6 +51,8 @@
     </div>
 </tr>
 </table>
+<label for="id_otp">OTP:</label>
+{% include 'vkey.html' %}
 <div class="d-grid mt-3">
 <input class="btn btn-primary" type="submit" value="Login">
 <input class="btn btn-primary" type="hidden" name="next" value="{{ next }}">
