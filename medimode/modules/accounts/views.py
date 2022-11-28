@@ -23,12 +23,12 @@ with open("medimode/models/cities.json") as _fl:
 class Login(LoginView):
 	next_page = reverse_lazy("medimode_index")
 	
-	def post(self, request):
+	def post(self, request, **kwargs):
 		otp_given = request.POST.get("otp")
 		otp_actual = get_object_or_404(User, username=request.POST.get("username")).totp
 		if not otp_given == otp_actual:
 			raise ValidationError("Invalid OTP provided")
-		super().post(request)
+		return super().post(request, **kwargs)
 
 class Logout(AuthView):
 	def get(self, request, **kwargs):
