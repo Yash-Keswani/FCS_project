@@ -65,7 +65,7 @@ class Search(AuthTemplateView):
 		all_objs = category.objects.all()
 		if request.POST.get("loc_search") or request.POST.get("search"):
 			all_objs = category.objects.filter(Q(location_state=location_state) & Q(location_city=location_city))
-			entries = category.objects.all().select_related("user")
+			entries = [x.user for x in all_objs]
 		
 		if request.POST.get("name_search") or request.POST.get("search"):
 			names_obj = {x.full_name: x.user for x in all_objs}

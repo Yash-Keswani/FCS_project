@@ -1,3 +1,7 @@
+{% load static %}
+{% include 'navbar.html' %}
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<link href="{% static 'home.css' %}" rel="stylesheet" />
 <form action="/medimode/share_document" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     <tr>
@@ -19,7 +23,9 @@
         <td>
             <select name="shared_with" id="id_shared_with" multiple>
                 {% for profile in profiles %}
+		{% if profile.approved == 1 %}
                     <option value="{{ profile.pk }}">{{ profile.full_name }}</option>
+		    {% endif %}
                 {% endfor %}
             </select>
         </td>

@@ -39,13 +39,6 @@ class VerifyTicketDocument(AuthView):
 		pass
 
 def verify_document(ticket, document: Shareable):
-	target_role = ticket.issued.user.role
-	if target_role == 'pharmacy':
-		return document.get_owner_from_blockchain().role == 'doctor'
-	elif target_role == 'hospital':
-		return document.get_owner_from_blockchain().role == 'doctor'
-	elif target_role == 'insurance':
-		return document.get_owner_from_blockchain().role == 'hospital'
 	return True
 
 def verify_ticket(ticket):
@@ -67,8 +60,6 @@ class TicketView(AuthDetailView):
 		tkt = get_object_or_404(Ticket, pk=_ticket_id)
 		if request.user.profile not in (tkt.issued, tkt.issuer):
 			raise ValidationError("Not your Ticket")
-		if not verify_ticket(tkt):
-			raise ValidationError("This ticket isn't verified")
 		
 		if request.POST.get("add_transaction") and request.user.role != "patient":
 			TicketView.attach_transaction(request, tkt)

@@ -92,8 +92,7 @@
 
         text = await fetch(filename).then(response => response.body.getReader().read()).then(data => data.value)
         const _hash = ethers.utils.sha256(text)
-        owner = await contract.getHashOwner(_hash)
-        alert(owner === document.getElementById(pk).name)
+        alert(await contract.verifyHashOwner(_hash,document.getElementById(pk).name))
     }
 
     async function put_file_on_blockchain() {

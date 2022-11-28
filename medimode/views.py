@@ -54,5 +54,4 @@ class ShareDocument(AuthCreateView):
 	
 	def form_valid(self, form):
 		form.instance.owner = self.request.user.profile
-		form.instance.doc_hash = hashlib.sha256(form.cleaned_data['doc_file'].read()).hexdigest()
 		return super().form_valid(form)
