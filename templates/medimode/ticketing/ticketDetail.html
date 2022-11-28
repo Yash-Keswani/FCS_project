@@ -78,7 +78,6 @@
 <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js" type="application/javascript"></script>
 <script>
     const CONTRACT_ADDR = "0xA73a358449Dd178C45d69dEc954E10361a6a6059"
-    const PROVIDER = new ethers.providers.AlchemyProvider("goerli", "J515gryHHGjksvLy6t6l0_VTwRSdEsJJ")
     const provider = new ethers.providers.Web3Provider(window.ethereum)
     document.getElementById("dummy").onclick = async () => {
         await put_file_on_blockchain();
@@ -89,7 +88,7 @@
         const ABI = await fetch("{% static 'abi.json' %}").then(response => response.json()).then(data => {
             return (data)
         })
-        const contract = new ethers.Contract(CONTRACT_ADDR, ABI, PROVIDER)
+        const contract = new ethers.Contract(CONTRACT_ADDR, ABI, provider)
 
         text = await fetch(filename).then(response => response.body.getReader().read()).then(data => data.value)
         const _hash = ethers.utils.sha256(text)
