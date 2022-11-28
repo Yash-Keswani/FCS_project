@@ -293,12 +293,12 @@ class EditProfile(AuthTemplateView):
 
 @method_decorator(ratelimit(key='ip', rate='5/m', method='POST', block=True), name='get')
 @method_decorator(ratelimit(key='ip', rate='50/h', method='POST', block=True), name='get')
-class SendOTP(AuthView):
-    def get(self, request):  # TODO: change to post
-        user = request.user
-        send_mail(
-            'Your OTP | Medimode Solutions',
-            f"Here's your OTP: {user.totp}",
-            'test.com',
-            [user.email]
-        )
+# class SendOTP(AuthView):
+#     def get(self, request):  # TODO: change to post
+#         user = request.user
+#         send_mail(
+#             'Your OTP | Medimode Solutions',
+#             f"Here's your OTP: {user.totp}",
+#             'test.com',
+#             [user.email]
+#         )
