@@ -145,7 +145,7 @@ class SignupDoctor(TemplateView):
 			_works_at = get_clean_int(_post, 'works_at')
 		# check if public key is hexadecimal
 		if not (len(_publicKey) == 42 and _publicKey.startswith('0x')
-						and all('9' > ch > '0' or 'F' > ch > 'A' or 'f' > ch > 'a' for ch in _publicKey[2:])):
+						and all('9' >= ch >= '0' or 'F' >= ch >= 'A' or 'f' >= ch >= 'a' for ch in _publicKey[2:])):
 			raise ValidationError("Invalid public key provided")
 		
 		_poa = get_document(_files, 'proof_of_address')
