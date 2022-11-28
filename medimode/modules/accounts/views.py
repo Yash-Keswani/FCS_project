@@ -291,8 +291,8 @@ class EditProfile(AuthTemplateView):
         return redirect(reverse('medimode_index'))
 
 
-@method_decorator(ratelimit(key='ip', rate='5/m', method='POST', block=True), name='get')
-@method_decorator(ratelimit(key='ip', rate='50/h', method='POST', block=True), name='get')
+# @method_decorator(ratelimit(key='ip', rate='5/m', method='POST', block=True), name='get')
+# @method_decorator(ratelimit(key='ip', rate='50/h', method='POST', block=True), name='get')
 # class SendOTP(AuthView):
 #     def get(self, request):  # TODO: change to post
 #         user = request.user
