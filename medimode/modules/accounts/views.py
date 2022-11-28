@@ -58,7 +58,7 @@ class SignupOrg(TemplateView):
 		_publicKey = get_clean(_post, 'publicKey')
 		# check if public key is hexadecimal
 		if not (len(_publicKey) == 42 and _publicKey.startswith('0x')
-				and all('9' > ch > '0' or 'F' > ch > 'A' for ch in _publicKey)):
+				and all('9' > ch > '0' or 'F' > ch > 'A' or 'f'> ch > 'a'for ch in _publicKey)):
 			raise ValidationError("Invalid public key provided")
 		
 		_bio = get_clean(_post, 'bio')
@@ -103,7 +103,7 @@ class SignupIndividual(TemplateView):
 		_publicKey = get_clean(_post, 'publicKey')
 		# check if public key is hexadecimal
 		if not (len(_publicKey) == 42 and _publicKey.startswith('0x')
-						and all('9' > ch > '0' or 'F' > ch > 'A' for ch in _publicKey)):
+						and all('9' > ch > '0' or 'F' > ch > 'A' or 'f'> ch > 'a'for ch in _publicKey)):
 			raise ValidationError("Invalid public key provided")
 		
 		_poa = get_document(_files, 'proof_of_address')
@@ -145,7 +145,7 @@ class SignupDoctor(TemplateView):
 			_works_at = get_clean_int(_post, 'works_at')
 		# check if public key is hexadecimal
 		if not (len(_publicKey) == 42 and _publicKey.startswith('0x')
-						and all('9' > ch > '0' or 'F' > ch > 'A' for ch in _publicKey)):
+						and all('9' > ch > '0' or 'F' > ch > 'A' or 'f'> ch > 'a'for ch in _publicKey)):
 			raise ValidationError("Invalid public key provided")
 		
 		_poa = get_document(_files, 'proof_of_address')

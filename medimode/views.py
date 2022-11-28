@@ -1,12 +1,11 @@
 import hashlib
 import os
-
+from django.db.models import Q
 import stripe
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.urls import reverse_lazy
-
-from medimode.models import Shareable, Profile
+from medimode.models import Shareable, Profile, Ticket
 from medimode.views_base import AuthListView, AuthCreateView, AuthView
 
 # stripe.api_key = os.getenv("stripe_api_key")
@@ -21,15 +20,21 @@ class Home(AuthView):
 		if role == "patient":
 			return render(request, 'medimode/home.html')
 		elif role == "doctor":
-			return render(request, 'medimode/organisationHome.html')
+			return redirect(reverse('org_home'))
 		elif role == "pharmacy":
-			return render(request, 'medimode/organisationHome.html')
+			return redirect(reverse('org_home'))
 		elif role == "hospital":
-			return render(request, 'medimode/organisationHome.html')
+			return redirect(reverse('org_home'))
 		elif role == "insurance":
-			return render(request, 'medimode/organisationHome.html')
+			return redirect(reverse('org_home'))
 		else:
 			return render(request, 'medimode/home.html')
+
+class MyTicketsOrg(AuthListView):
+	template_name = "medimode/organisationHome.html"
+	def get_queryset(self):
+		return Ticket.objects.filter(Q(issued=self.request.user.profile) | Q(issuer=self.request.user.profile))
+
 
 class MyDocuments(AuthListView):
 	model = Shareable
